@@ -1,0 +1,30 @@
+ext{
+
+    android = [
+            compileSdkVersion: 28,
+            buildToolsVersion: '28.0.3',
+            applicationId    : "com.dzt.launchmode",
+            minSdkVersion    : 24,
+            targetSdkVersion : 28,
+            versionCode      : 1,
+            versionName      : "1.0"
+    ]
+
+    def dependVersion = [
+            support    : "28.0.0",
+            retrofit   : '2.6.1',
+            butterknife: "8.4.0",
+            blockcanary: "1.2.1",
+            leakcanary : "1.4-beta2"
+    ]
+
+    dependencies = [
+            //base
+            "appcompat-v7"                   : "com.android.support:appcompat-v7:${dependVersion.support}",
+            "recyclerview-v7"                : "com.android.support:recyclerview-v7:${dependVersion.support}",
+            "design"                         : "com.android.support:design:${dependVersion.support}",
+            "retrofit"                       : "com.squareup.retrofit2:retrofit:${dependVersion.retrofit}",
+            "rxjava"                         : 'io.reactivex.rxjava2:rxjava:2.2.7'
+    ]
+
+}
