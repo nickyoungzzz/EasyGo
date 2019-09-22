@@ -12,14 +12,18 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.Interceptor
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.Result
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 class HttpProcessor {
@@ -51,7 +55,7 @@ class HttpProcessor {
 		const val TIMEOUT = 30L
 	}
 
-	class HttpDelegate internal constructor(var url: String, var reqMethod: ReqMethod) {
+	class HttpDelegate internal constructor(private val url: String, private val reqMethod: ReqMethod) {
 
 		private var reqTag = ""
 
@@ -60,6 +64,10 @@ class HttpProcessor {
 		private var headerMap = hashMapOf<String, String>()
 
 		private var fieldMap = hashMapOf<String, String>()
+
+		private val multipartBody = MultipartBody.Builder().setType(MultipartBody.FORM)
+
+		private var asMultiPart = false
 
 		private var onMainThread = true
 
@@ -77,6 +85,10 @@ class HttpProcessor {
 			.writeTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.readTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.connectTimeout(TIMEOUT, TimeUnit.SECONDS)
+			.addInterceptor(run {
+				val httpLoggingInterceptor = HttpLoggingInterceptor()
+				httpLoggingInterceptor.apply { this.level = HttpLoggingInterceptor.Level.BODY }
+			})
 
 		fun addQuery(key: String, value: String): HttpDelegate {
 			queryMap[key] = value
@@ -106,6 +118,17 @@ class HttpProcessor {
 
 		fun addJsonString(jsonString: String): HttpDelegate {
 			this.jsonString = jsonString
+			return this
+		}
+
+		fun addPart(key: String, value: String): HttpDelegate {
+			multipartBody.addFormDataPart(key, value)
+			return this
+		}
+
+		fun addFile(key: String, file: File): HttpDelegate {
+			val requestBody = file.asRequestBody("Content-Type: application/octet-stream".toMediaTypeOrNull())
+			multipartBody.addFormDataPart(key, file.name, requestBody)
 			return this
 		}
 
@@ -139,6 +162,11 @@ class HttpProcessor {
 			return this
 		}
 
+		fun asMultiPart(): HttpDelegate {
+			this.asMultiPart = true
+			return this
+		}
+
 		fun timeOut(timeOut: Long, timeUnit: TimeUnit): HttpDelegate {
 			okHttpClientBuilder.writeTimeout(timeOut, timeUnit)
 				.readTimeout(timeOut, timeUnit)
@@ -154,11 +182,17 @@ class HttpProcessor {
 				ReqMethod.GET ->
 					httpProcessorService.get(url, headerMap, queryMap)
 				ReqMethod.POST -> {
-					val requestBody = RequestBody.create(MediaType.parse("Content-Type:application/json;charset=utf-8"), jsonString)
+					val requestBody = jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())
 					httpProcessorService.post(url, headerMap, queryMap, requestBody)
 				}
 				ReqMethod.GET_FORM -> httpProcessorService.getForm(url, headerMap, queryMap, fieldMap)
-				ReqMethod.POST_FORM -> httpProcessorService.postForm(url, headerMap, queryMap, fieldMap)
+				ReqMethod.POST_FORM -> {
+					if (asMultiPart) {
+						httpProcessorService.post(url, headerMap, queryMap, multipartBody.build())
+					} else {
+						httpProcessorService.postForm(url, headerMap, queryMap, fieldMap)
+					}
+				}
 				ReqMethod.PUT -> httpProcessorService.put(url, headerMap, queryMap)
 			}
 			observableResult.subscribeOn(Schedulers.io())
@@ -170,7 +204,7 @@ class HttpProcessor {
 					}
 
 					override fun onSubscribe(d: Disposable) {
-						httpCallBack.onLoading()
+						httpCallBack.onResult(HttpResult.loading())
 						if (reqTag.isNotEmpty()) {
 							if (reqTagMap.containsKey(reqTag)) {
 								val compositeDisposable = reqTagMap[reqTag]

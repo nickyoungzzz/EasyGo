@@ -1,7 +1,6 @@
 package com.nick.lib.network.interfaces
 
 import io.reactivex.Observable
-import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.Response
 import retrofit2.http.*
@@ -11,7 +10,7 @@ interface HttpUploadService {
 
 	@Multipart
 	@POST
-	fun upload(@Url url: String, @PartMap partMap: HashMap<String, String>, @Part part: MultipartBody.Part): Observable<Result<Response>>
+	fun upload(@Url url: String, @PartMap partMap: HashMap<String, RequestBody>): Observable<Result<Response>>
 
 	@FormUrlEncoded
 	@POST

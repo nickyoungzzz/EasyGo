@@ -8,8 +8,6 @@ abstract class HttpCallBack<T, F> {
 
 	abstract fun onResult(httpResult: HttpResult<T, F>)
 
-	abstract fun onLoading()
-
 	fun getGenericType(index: Int): Type {
 		val type = this.javaClass.genericSuperclass
 		val typeArray = ((type as ParameterizedType).actualTypeArguments)

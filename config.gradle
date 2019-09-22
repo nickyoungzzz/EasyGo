@@ -27,10 +27,11 @@ ext{
             "converter-scalars"              : "com.squareup.retrofit2:converter-scalars:${dependVersion.retrofit}",
             "rxjava"                         : "io.reactivex.rxjava2:rxjava:${dependVersion.rxjava}",
             "rxandroid"                      : "io.reactivex.rxjava2:rxandroid:${dependVersion.rxandroid}",
-            "adapter-rxjava2"                 : "com.squareup.retrofit2:adapter-rxjava2:${dependVersion.retrofit}",
+            "adapter-rxjava2"                : "com.squareup.retrofit2:adapter-rxjava2:${dependVersion.retrofit}",
             "kotlin-stdlib-jdk8"             : "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version",
             "gson"                           : "com.google.code.gson:gson:2.8.5",
-            "converter-gson"                 : "com.squareup.retrofit2:converter-gson:${dependVersion.retrofit}"
+            "converter-gson"                 : "com.squareup.retrofit2:converter-gson:${dependVersion.retrofit}",
+            "logging-interceptor"            : "com.squareup.okhttp3:logging-interceptor:4.2.0"
     ]
 
 }

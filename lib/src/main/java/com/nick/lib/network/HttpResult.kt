@@ -1,5 +1,6 @@
 package com.nick.lib.network
 
+import com.nick.lib.network.interfaces.ResponseStatus
 import okhttp3.Headers
 
 class HttpResult<T, F> constructor(var status: ResponseStatus) {
@@ -26,11 +27,7 @@ class HttpResult<T, F> constructor(var status: ResponseStatus) {
 		this.throwable = throwable
 	}
 
-	enum class ResponseStatus {
-		SUCCESS, ERROR, LOADING
-	}
-
-	fun isThrowable() = throwable == null
+	fun isThrowable() = throwable != null
 
 	companion object {
 
