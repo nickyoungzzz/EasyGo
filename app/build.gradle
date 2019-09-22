@@ -4,8 +4,9 @@ apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion rootProject.ext.android.compileSdkVersion
+    buildToolsVersion rootProject.ext.android.buildToolsVersion
     defaultConfig {
-        applicationId "com.nick.base"
+        applicationId rootProject.ext.android.applicationId
         minSdkVersion rootProject.ext.android.minSdkVersion
         targetSdkVersion rootProject.ext.android.targetSdkVersion
         versionCode rootProject.ext.android.versionCode
@@ -24,17 +25,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    buildToolsVersion rootProject.ext.android.buildToolsVersion
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    api project(':lib_common')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation 'com.squareup.retrofit2:adapter-rxjava:2.6.1'
-}
-repositories {
-    mavenCentral()
+    api project(':lib')
 }

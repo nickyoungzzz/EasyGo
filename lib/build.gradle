@@ -1,9 +1,11 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion rootProject.ext.android.compileSdkVersion
+    buildToolsVersion rootProject.ext.android.buildToolsVersion
     defaultConfig {
         minSdkVersion rootProject.ext.android.minSdkVersion
         targetSdkVersion rootProject.ext.android.targetSdkVersion
@@ -23,17 +25,19 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    buildToolsVersion rootProject.ext.android.buildToolsVersion
 }
 
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
     api rootProject.ext.dependencies["appcompat-v7"]
     api rootProject.ext.dependencies["retrofit"]
-    api 'io.reactivex.rxjava2:rxjava:2.2.12'
-    api 'com.github.bumptech.glide:glide:4.9.0'
-    implementation 'com.google.code.gson:gson:2.8.5'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    api rootProject.ext.dependencies["rxjava"]
+    api rootProject.ext.dependencies["rxandroid"]
+    api rootProject.ext.dependencies["adapter-rxjava2"]
+    api rootProject.ext.dependencies["kotlin-stdlib-jdk8"]
+    api rootProject.ext.dependencies["gson"]
+    api rootProject.ext.dependencies["converter-scalars"]
+    api rootProject.ext.dependencies["converter-gson"]
 }
 repositories {
     mavenCentral()
