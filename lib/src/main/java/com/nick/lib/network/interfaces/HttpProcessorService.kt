@@ -19,7 +19,7 @@ interface HttpProcessorService {
 
 	@POST("{path}")
 	@FormUrlEncoded
-	fun postForm(@Path("path") path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>, @FieldMap(encoded = true) fieldMap: HashMap<String, String>): Observable<Result<String>>
+	fun postForm(@Path(value = "path", encoded = true) path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>, @FieldMap(encoded = true) fieldMap: HashMap<String, String>): Observable<Result<String>>
 
 	@PUT("{path}")
 	fun put(@Path("path") path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>): Observable<Result<String>>

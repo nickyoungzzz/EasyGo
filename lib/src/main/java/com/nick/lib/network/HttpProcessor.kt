@@ -5,10 +5,7 @@ import com.nick.lib.BuildConfig
 import com.nick.lib.network.interceptor.HeaderInterceptor
 import com.nick.lib.network.interceptor.QueryInterceptor
 import com.nick.lib.network.interceptor.UrlInterceptor
-import com.nick.lib.network.interfaces.HttpCallBack
-import com.nick.lib.network.interfaces.HttpConfig
-import com.nick.lib.network.interfaces.HttpProcessorService
-import com.nick.lib.network.interfaces.ReqMethod
+import com.nick.lib.network.interfaces.*
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -79,7 +76,6 @@ class HttpProcessor {
 		private val retrofitBuilder = Retrofit.Builder()
 			.addCallAdapterFactory(RxJava2CallAdapterFactory.create())
 			.addConverterFactory(ScalarsConverterFactory.create())
-			.baseUrl("/")
 
 		private var okHttpClient: OkHttpClient? = null
 
@@ -96,6 +92,11 @@ class HttpProcessor {
 						HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
 				}
 			})
+
+		fun baseUrl(baseUrl: String): HttpDelegate {
+			retrofitBuilder.baseUrl(baseUrl)
+			return this
+		}
 
 		fun addQuery(key: String, value: String): HttpDelegate {
 			queryMap[key] = value
@@ -193,8 +194,8 @@ class HttpProcessor {
 
 		@Suppress("UNCHECKED_CAST") fun <T, F> process(httpCallBack: HttpCallBack<T, F>) {
 			val client = okHttpClient ?: okHttpClientBuilder.build()
-			if (url.startsWith("http://", true) || url.startsWith("https://")) {
-				client.newBuilder().addInterceptor(UrlInterceptor(url))
+			if (url.startsWith(HttpProtocol.HTTP.schema, true) or url.startsWith(HttpProtocol.HTTPS.schema, true)) {
+				client.newBuilder().addInterceptor(UrlInterceptor(url)).build()
 			}
 			val httpProcessorService = retrofitBuilder.client(client)
 				.build().create(HttpProcessorService::class.java)
