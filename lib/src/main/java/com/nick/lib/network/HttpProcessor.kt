@@ -1,9 +1,12 @@
 package com.nick.lib.network
 
 import com.google.gson.Gson
+import com.nick.lib.BuildConfig
 import com.nick.lib.network.interceptor.HeaderInterceptor
 import com.nick.lib.network.interceptor.QueryInterceptor
+import com.nick.lib.network.interceptor.UrlInterceptor
 import com.nick.lib.network.interfaces.HttpCallBack
+import com.nick.lib.network.interfaces.HttpConfig
 import com.nick.lib.network.interfaces.HttpProcessorService
 import com.nick.lib.network.interfaces.ReqMethod
 import io.reactivex.Observer
@@ -73,9 +76,10 @@ class HttpProcessor {
 
 		private var jsonString = ""
 
-		private val retrofitBuilder = Retrofit.Builder().baseUrl("https://www.baidu.com/")
+		private val retrofitBuilder = Retrofit.Builder()
 			.addCallAdapterFactory(RxJava2CallAdapterFactory.create())
 			.addConverterFactory(ScalarsConverterFactory.create())
+			.baseUrl("/")
 
 		private var okHttpClient: OkHttpClient? = null
 
@@ -87,7 +91,10 @@ class HttpProcessor {
 			.connectTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.addInterceptor(run {
 				val httpLoggingInterceptor = HttpLoggingInterceptor()
-				httpLoggingInterceptor.apply { this.level = HttpLoggingInterceptor.Level.BODY }
+				httpLoggingInterceptor.apply {
+					this.level = if (BuildConfig.DEBUG)
+						HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+				}
 			})
 
 		fun addQuery(key: String, value: String): HttpDelegate {
@@ -174,9 +181,22 @@ class HttpProcessor {
 			return this
 		}
 
-		@Suppress("UNCHECKED_CAST") fun <T, F> process(httpCallBack: HttpCallBack<T, F>) {
+		fun config(httpConfig: HttpConfig): HttpDelegate {
+			retrofitBuilder.baseUrl(httpConfig.baseUrl())
+			return this
+		}
 
-			val httpProcessorService = retrofitBuilder.client(okHttpClient ?: okHttpClientBuilder.build())
+		fun defaultConfig(): HttpDelegate {
+			this.config(DefaultConfig.create())
+			return this
+		}
+
+		@Suppress("UNCHECKED_CAST") fun <T, F> process(httpCallBack: HttpCallBack<T, F>) {
+			val client = okHttpClient ?: okHttpClientBuilder.build()
+			if (url.startsWith("http://", true) || url.startsWith("https://")) {
+				client.newBuilder().addInterceptor(UrlInterceptor(url))
+			}
+			val httpProcessorService = retrofitBuilder.client(client)
 				.build().create(HttpProcessorService::class.java)
 			val observableResult = when (reqMethod) {
 				ReqMethod.GET ->
