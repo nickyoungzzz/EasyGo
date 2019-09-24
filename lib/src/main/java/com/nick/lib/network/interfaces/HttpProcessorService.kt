@@ -9,18 +9,18 @@ import java.util.*
 interface HttpProcessorService {
 
 	@GET("{path}")
-	fun get(@Path("path") path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>): Observable<Result<String>>
+	fun get(@Path(value = "path", encoded = true) path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>): Observable<Result<String>>
 
 	@POST("{path}")
-	fun post(@Path("path") path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>, @Body requestBody: RequestBody): Observable<Result<String>>
+	fun post(@Path(value = "path", encoded = true) path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>, @Body requestBody: RequestBody): Observable<Result<String>>
 
 	@GET("{path}")
-	fun getForm(@Path("path") path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>, @FieldMap fieldMap: HashMap<String, String>): Observable<Result<String>>
+	fun getForm(@Path(value = "path", encoded = true) path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>, @FieldMap fieldMap: HashMap<String, String>): Observable<Result<String>>
 
 	@POST("{path}")
 	@FormUrlEncoded
 	fun postForm(@Path(value = "path", encoded = true) path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>, @FieldMap(encoded = true) fieldMap: HashMap<String, String>): Observable<Result<String>>
 
 	@PUT("{path}")
-	fun put(@Path("path") path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>): Observable<Result<String>>
+	fun put(@Path(value = "path", encoded = true) path: String, @HeaderMap headerMap: HashMap<String, String>, @QueryMap queryMap: HashMap<String, String>): Observable<Result<String>>
 }

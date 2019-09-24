@@ -77,8 +77,6 @@ class HttpProcessor {
 			.addCallAdapterFactory(RxJava2CallAdapterFactory.create())
 			.addConverterFactory(ScalarsConverterFactory.create())
 
-		private var okHttpClient: OkHttpClient? = null
-
 		private var okHttpClientBuilder = OkHttpClient.Builder()
 			.sslSocketFactory(SslHelper.getSSLSocketFactory(), SslHelper.getTrustManager())
 			.hostnameVerifier(SslHelper.getHostnameVerifier())
@@ -160,11 +158,6 @@ class HttpProcessor {
 			return this
 		}
 
-		fun client(client: OkHttpClient): HttpDelegate {
-			this.okHttpClient = client
-			return this
-		}
-
 		fun onMainThread(onMainThread: Boolean): HttpDelegate {
 			this.onMainThread = onMainThread
 			return this
@@ -193,11 +186,10 @@ class HttpProcessor {
 		}
 
 		@Suppress("UNCHECKED_CAST") fun <T, F> process(httpCallBack: HttpCallBack<T, F>) {
-			val client = okHttpClient ?: okHttpClientBuilder.build()
 			if (url.startsWith(HttpProtocol.HTTP.schema, true) or url.startsWith(HttpProtocol.HTTPS.schema, true)) {
-				client.newBuilder().addInterceptor(UrlInterceptor(url)).build()
+				okHttpClientBuilder.addInterceptor(UrlInterceptor(url)).build()
 			}
-			val httpProcessorService = retrofitBuilder.client(client)
+			val httpProcessorService = retrofitBuilder.client(okHttpClientBuilder.build())
 				.build().create(HttpProcessorService::class.java)
 			val observableResult = when (reqMethod) {
 				ReqMethod.GET ->
