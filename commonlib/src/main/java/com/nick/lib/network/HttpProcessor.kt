@@ -1,5 +1,6 @@
 package com.nick.lib.network
 
+import android.content.Context
 import com.google.gson.Gson
 import com.nick.lib.BuildConfig
 import com.nick.lib.network.interceptor.HeaderInterceptor
@@ -70,6 +71,8 @@ class HttpProcessor {
 		private var onMainThread = true
 
 		private var jsonString = ""
+
+		private var activity: Context? = null
 
 		private val retrofitBuilder = Retrofit.Builder()
 			.addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -174,8 +177,8 @@ class HttpProcessor {
 			return this
 		}
 
-		fun asMultiPart(): HttpDelegate {
-			this.asMultiPart = true
+		fun asMultiPart(multiPart: Boolean): HttpDelegate {
+			this.asMultiPart = multiPart
 			return this
 		}
 
