@@ -3,8 +3,6 @@ package com.nick.lib.network
 import com.google.gson.Gson
 import com.nick.lib.BuildConfig
 import com.nick.lib.network.interceptor.HeaderInterceptor
-import com.nick.lib.network.interceptor.QueryInterceptor
-import com.nick.lib.network.interceptor.UrlInterceptor
 import com.nick.lib.network.interfaces.*
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -101,8 +99,14 @@ class HttpProcessor {
 			return this
 		}
 
-		fun addQueryMap(map: HashMap<String, String>): HttpDelegate {
-			okHttpClientBuilder.addInterceptor(QueryInterceptor(map))
+		fun addQueryMap(queryMap: HashMap<String, String>): HttpDelegate {
+			if (queryMap.isNotEmpty()) {
+				this.queryMap.forEach {
+					if (!this.queryMap.containsKey(it.key)) {
+						this.queryMap[it.key] = it.value
+					}
+				}
+			}
 			return this
 		}
 
@@ -115,7 +119,7 @@ class HttpProcessor {
 			if (fieldMap.isNotEmpty()) {
 				fieldMap.forEach {
 					if (!this.fieldMap.containsKey(it.key)) {
-						this.fieldMap[it.key] = it.value
+						addField(it.key, it.value)
 					}
 				}
 			}
@@ -127,14 +131,15 @@ class HttpProcessor {
 			return this
 		}
 
-		fun addPart(key: String, value: String): HttpDelegate {
-			multipartBody.addFormDataPart(key, value)
-			return this
-		}
-
-		fun addFile(key: String, file: File): HttpDelegate {
-			val requestBody = file.asRequestBody("Content-Type: application/octet-stream".toMediaTypeOrNull())
-			multipartBody.addFormDataPart(key, file.name, requestBody)
+		fun addMultiPart(key: String, value: Any): HttpDelegate {
+			asMultiPart = true
+			if (value is String) {
+				multipartBody.addFormDataPart(key, value)
+			} else if (value is File) {
+				val file = value as File
+				val requestBody = file.asRequestBody("Content-Type: application/octet-stream".toMediaTypeOrNull())
+				multipartBody.addFormDataPart(key, file.name, requestBody)
+			}
 			return this
 		}
 
@@ -144,7 +149,13 @@ class HttpProcessor {
 		}
 
 		fun addHeaders(headerMap: HashMap<String, String>): HttpDelegate {
-			okHttpClientBuilder.addInterceptor(HeaderInterceptor(headerMap))
+			if (headerMap.isNotEmpty()) {
+				headerMap.forEach {
+					if (!this.headerMap.containsKey(it.key)) {
+						addHeader(it.key, it.value)
+					}
+				}
+			}
 			return this
 		}
 
@@ -177,6 +188,7 @@ class HttpProcessor {
 
 		fun config(httpConfig: HttpConfig): HttpDelegate {
 			retrofitBuilder.baseUrl(httpConfig.baseUrl())
+			okHttpClientBuilder.addInterceptor(HeaderInterceptor(httpConfig.headers()))
 			return this
 		}
 
@@ -186,27 +198,44 @@ class HttpProcessor {
 		}
 
 		@Suppress("UNCHECKED_CAST") fun <T, F> process(httpCallBack: HttpCallBack<T, F>) {
-			if (url.startsWith(HttpProtocol.HTTP.schema, true) or url.startsWith(HttpProtocol.HTTPS.schema, true)) {
-				okHttpClientBuilder.addInterceptor(UrlInterceptor(url)).build()
-			}
+			val httpUrl = url.startsWith(HttpProtocol.HTTP.schema, true) or url.startsWith(HttpProtocol.HTTPS.schema, true)
 			val httpProcessorService = retrofitBuilder.client(okHttpClientBuilder.build())
 				.build().create(HttpProcessorService::class.java)
 			val observableResult = when (reqMethod) {
-				ReqMethod.GET ->
+				ReqMethod.GET -> if (httpUrl)
+					httpProcessorService.getByUrl(url, headerMap, queryMap)
+				else
 					httpProcessorService.get(url, headerMap, queryMap)
 				ReqMethod.POST -> {
 					val requestBody = jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())
-					httpProcessorService.post(url, headerMap, queryMap, requestBody)
+					if (httpUrl)
+						httpProcessorService.postByUrl(url, headerMap, queryMap, requestBody)
+					else
+						httpProcessorService.post(url, headerMap, queryMap, requestBody)
 				}
-				ReqMethod.GET_FORM -> httpProcessorService.getForm(url, headerMap, queryMap, fieldMap)
+				ReqMethod.GET_FORM ->
+					if (httpUrl)
+						httpProcessorService.getFormByUrl(url, headerMap, queryMap, fieldMap)
+					else
+						httpProcessorService.getForm(url, headerMap, queryMap, fieldMap)
 				ReqMethod.POST_FORM -> {
 					if (asMultiPart) {
-						httpProcessorService.post(url, headerMap, queryMap, multipartBody.build())
+						if (httpUrl)
+							httpProcessorService.postByUrl(url, headerMap, queryMap, multipartBody.build())
+						else
+							httpProcessorService.post(url, headerMap, queryMap, multipartBody.build())
 					} else {
-						httpProcessorService.postForm(url, headerMap, queryMap, fieldMap)
+						if (httpUrl)
+							httpProcessorService.postFormByUrl(url, headerMap, queryMap, fieldMap)
+						else
+							httpProcessorService.postForm(url, headerMap, queryMap, fieldMap)
 					}
 				}
-				ReqMethod.PUT -> httpProcessorService.put(url, headerMap, queryMap)
+				ReqMethod.PUT ->
+					if (httpUrl)
+						httpProcessorService.putByUrl(url, headerMap, queryMap)
+					else
+						httpProcessorService.putByUrl(url, headerMap, queryMap)
 			}
 			observableResult.subscribeOn(Schedulers.io())
 				.unsubscribeOn(Schedulers.io())
