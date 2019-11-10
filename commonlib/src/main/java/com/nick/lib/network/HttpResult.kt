@@ -3,12 +3,12 @@ package com.nick.lib.network
 import com.nick.lib.network.interfaces.ResponseStatus
 import okhttp3.Headers
 
-class HttpResult<T, F> constructor(var status: ResponseStatus) {
+class HttpResult<T> constructor(var status: ResponseStatus) {
 
 	var code: Int = 0
 	var headers: Headers? = null
 	var success: T? = null
-	var error: F? = null
+	var error: String? = null
 	var throwable: Throwable? = null
 
 	constructor(status: ResponseStatus, t: T, code: Int, headers: Headers) : this(status) {
@@ -17,7 +17,7 @@ class HttpResult<T, F> constructor(var status: ResponseStatus) {
 		this.headers = headers
 	}
 
-	constructor(status: ResponseStatus, code: Int, f: F, headers: Headers) : this(status) {
+	constructor(status: ResponseStatus, code: Int, f: String, headers: Headers) : this(status) {
 		this.error = f
 		this.code = code
 		this.headers = headers
@@ -31,19 +31,19 @@ class HttpResult<T, F> constructor(var status: ResponseStatus) {
 
 	companion object {
 
-		fun <T, F> success(t: T, code: Int, headers: Headers): HttpResult<T, F> {
+		fun <T> success(t: T, code: Int, headers: Headers): HttpResult<T> {
 			return HttpResult(ResponseStatus.SUCCESS, t, code, headers)
 		}
 
-		fun <T, F> error(f: F, code: Int, headers: Headers): HttpResult<T, F> {
+		fun <T> error(f: String, code: Int, headers: Headers): HttpResult<T> {
 			return HttpResult(ResponseStatus.ERROR, code, f, headers)
 		}
 
-		fun <T, F> throwable(throwable: Throwable?): HttpResult<T, F> {
+		fun <T> throwable(throwable: Throwable?): HttpResult<T> {
 			return HttpResult(ResponseStatus.ERROR, throwable)
 		}
 
-		fun <T, F> loading(): HttpResult<T, F> {
+		fun <T> loading(): HttpResult<T> {
 			return HttpResult(ResponseStatus.LOADING)
 		}
 	}

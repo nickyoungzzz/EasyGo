@@ -9,7 +9,7 @@ class HeaderInterceptor(var headerMap: HashMap<String, String>) : Interceptor {
 		val requestBuilder = original.newBuilder()
 		if (headerMap.isNotEmpty()) {
 			headerMap.forEach {
-				if (original.header(it.key) != null) {
+				if (original.header(it.key) == null) {
 					requestBuilder.addHeader(it.key, it.value)
 				}
 			}
