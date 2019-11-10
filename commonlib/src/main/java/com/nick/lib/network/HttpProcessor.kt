@@ -16,6 +16,12 @@ fun postForm(url: String) = HttpDelegate(url, ReqMethod.POST_FORM)
 
 fun put(url: String) = HttpDelegate(url, ReqMethod.PUT)
 
+fun putForm(url: String) = HttpDelegate(url, ReqMethod.PUT_FORM)
+
+fun delete(url: String) = HttpDelegate(url, ReqMethod.DELETE)
+
+fun deleteForm(url: String) = HttpDelegate(url, ReqMethod.DELETE_FORM)
+
 @Volatile var hasConfig = false
 
 @Synchronized fun configEasyHttp(httpConfig: HttpConfig) {
