@@ -22,13 +22,13 @@ fun delete(url: String) = HttpDelegate(url, ReqMethod.DELETE)
 
 fun deleteForm(url: String) = HttpDelegate(url, ReqMethod.DELETE_FORM)
 
-@Volatile var hasConfig = false
+@Volatile private var hasConfig = false
 
 @Synchronized fun configEasyHttp(httpConfig: HttpConfig) {
 	if (hasConfig) {
 		throw RuntimeException("Do not config again")
 	}
-	val client = httpConfig.okHttpConfig(HttpProcessorFactory.okHttpClientBuilder)
-	HttpProcessorFactory.retrofit = HttpProcessorFactory.retrofitBuilder.baseUrl(httpConfig.baseUrl()).client(client).build()
+	val client = httpConfig.okHttpConfig(HttpConfigFactory.okHttpClientBuilder)
+	HttpConfigFactory.retrofit = HttpConfigFactory.retrofitBuilder.baseUrl(httpConfig.baseUrl()).client(client).build()
 	hasConfig = true
 }

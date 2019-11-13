@@ -9,7 +9,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
-internal object HttpProcessorFactory {
+internal object HttpConfigFactory {
 
 	private const val TIMEOUT = 30L
 
@@ -34,6 +34,5 @@ internal object HttpProcessorFactory {
 		.addConverterFactory(ScalarsConverterFactory.create())
 		.client(okHttpClientBuilder.build())
 
-	var retrofit: Retrofit = retrofitBuilder.build()
-		internal set
+	internal var retrofit: Retrofit? = null
 }

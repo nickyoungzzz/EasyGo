@@ -1,9 +1,8 @@
 package com.nick.lib.network.interfaces
 
 import com.google.gson.Gson
-import com.nick.lib.network.HttpProcessorFactory
+import com.nick.lib.network.HttpConfigFactory
 import com.nick.lib.network.HttpResult
-import com.nick.lib.network.util.HttpRequestTagStorage
 import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -22,7 +21,7 @@ import java.io.File
 
 class HttpDelegate internal constructor(private val reqUrl: String, private val reqMethod: ReqMethod) {
 
-	private var reqTag = ""
+	private var reqTag: Any? = null
 
 	private var queryMap = hashMapOf<String, String>()
 
@@ -32,13 +31,16 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 
 	private val multipartBody = MultipartBody.Builder().setType(MultipartBody.FORM)
 
-	private var asMultiPart = false
+	private var isMultiPart = false
 
 	private var onMainThread = false
 
 	private var jsonString = ""
 
-	private val retrofit = HttpProcessorFactory.retrofit
+	private val retrofit by lazy {
+		HttpConfigFactory.retrofit
+			?: throw RuntimeException("please config EasyHttp first!!!")
+	}
 
 	fun addQuery(key: String, value: String): HttpDelegate {
 		queryMap[key] = value
@@ -57,7 +59,7 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 	}
 
 	fun addField(key: String, value: String): HttpDelegate {
-		asMultiPart = false
+		isMultiPart = false
 		fieldMap[key] = value
 		return this
 	}
@@ -79,7 +81,7 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 	}
 
 	fun addMultiPart(key: String, value: Any): HttpDelegate {
-		asMultiPart = true
+		isMultiPart = true
 		if (value is String) {
 			multipartBody.addFormDataPart(key, value)
 		} else if (value is File) {
@@ -105,7 +107,7 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 		return this
 	}
 
-	fun tag(reqTag: String): HttpDelegate {
+	fun tag(reqTag: Any): HttpDelegate {
 		this.reqTag = reqTag
 		return this
 	}
@@ -115,8 +117,8 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 		return this
 	}
 
-	fun asMultiPart(multiPart: Boolean): HttpDelegate {
-		this.asMultiPart = multiPart
+	fun isMultiPart(multiPart: Boolean): HttpDelegate {
+		this.isMultiPart = multiPart
 		return this
 	}
 
@@ -126,17 +128,17 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 		val httpProcessorService = retrofit.create(HttpProcessorService::class.java)
 		val requestBody = jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())
 		return when (reqMethod) {
-			ReqMethod.GET -> httpProcessorService.get(url, headerMap, queryMap)
-			ReqMethod.POST -> httpProcessorService.post(url, headerMap, queryMap, requestBody)
-			ReqMethod.GET_FORM -> httpProcessorService.getForm(url, headerMap, queryMap, fieldMap)
+			ReqMethod.GET -> httpProcessorService.get(url, headerMap, queryMap, reqTag)
+			ReqMethod.POST -> httpProcessorService.post(url, headerMap, queryMap, requestBody, reqTag)
+			ReqMethod.GET_FORM -> httpProcessorService.getForm(url, headerMap, queryMap, fieldMap, reqTag)
 			ReqMethod.POST_FORM -> httpProcessorService.post(url, headerMap, queryMap,
-				if (asMultiPart) multipartBody.build() else constructFormBody())
-			ReqMethod.PUT -> httpProcessorService.put(url, headerMap, queryMap, requestBody)
-			ReqMethod.DELETE -> httpProcessorService.delete(url, headerMap, queryMap, requestBody)
+				if (isMultiPart) multipartBody.build() else constructFormBody(), reqTag)
+			ReqMethod.PUT -> httpProcessorService.put(url, headerMap, queryMap, requestBody, reqTag)
+			ReqMethod.DELETE -> httpProcessorService.delete(url, headerMap, queryMap, requestBody, reqTag)
 			ReqMethod.PUT_FORM -> httpProcessorService.put(url, headerMap, queryMap,
-				if (asMultiPart) multipartBody.build() else constructFormBody())
+				if (isMultiPart) multipartBody.build() else constructFormBody(), reqTag)
 			ReqMethod.DELETE_FORM -> httpProcessorService.delete(url, headerMap, queryMap,
-				if (asMultiPart) multipartBody.build() else constructFormBody())
+				if (isMultiPart) multipartBody.build() else constructFormBody(), reqTag)
 		}.subscribeOn(Schedulers.io())
 			.unsubscribeOn(Schedulers.io())
 			.observeOn(if (onMainThread) AndroidSchedulers.mainThread() else Schedulers.io())
@@ -152,20 +154,20 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 		return formBodyBuilder.build()
 	}
 
-	fun asString(): HttpResult<*> {
-		return asObject(null)
+	fun asString(): HttpResult<String> {
+		return asObject(String::class.java)
 	}
 
-	fun asObject(clazz: Class<*>?): HttpResult<*> {
+	fun <T> asObject(clazz: Class<T>?): HttpResult<T> {
 		return execute().map { t -> toObject(t, clazz) }.blockingFirst()
 	}
 
-	fun asList(clazz: Class<*>): HttpResult<*> {
+	fun <T> asList(clazz: Class<T>): HttpResult<List<T>> {
 		return execute().map { t -> toList(t, clazz) }.blockingFirst()
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	private fun <T> toList(t: Result<String>, asObjectType: Class<T>): HttpResult<T> {
+	private fun <T> toList(t: Result<String>, asObjectType: Class<T>): HttpResult<List<T>> {
 		if (t.isError) {
 			return HttpResult.throwable(t.error())
 		} else {
@@ -182,7 +184,7 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 						val jsonObject = jsonArray[index]
 						list.add(gan.fromJson(jsonObject.toString(), asObjectType))
 					}
-					return HttpResult.success(list as T, code, headers)
+					return HttpResult.success(list as List<T>, code, headers)
 				} else {
 					val result = response.errorBody()?.string() as String
 					return HttpResult.error(result, code, headers)
@@ -204,7 +206,7 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 				val headers = response.headers()
 				if (response.isSuccessful) {
 					val result = response.body() as String
-					val success = if (asObjectType == String::class.java || asObjectType == null) result as T else gan.fromJson(result, asObjectType)
+					val success = if (asObjectType == String::class.java) result as T else gan.fromJson(result, asObjectType)
 					return HttpResult.success(success, code, headers)
 				} else {
 					val result = response.errorBody()?.string() as String
@@ -218,12 +220,10 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 	@Suppress("UNCHECKED_CAST") fun <T> enqueue(httpCallBack: HttpCallBack<T>) {
 		execute().subscribe(object : Observer<Result<String>> {
 			override fun onComplete() {
-				HttpRequestTagStorage.cancelRequestTag(reqTag)
 			}
 
 			override fun onSubscribe(d: Disposable) {
 				httpCallBack.onResult(HttpResult.loading())
-				HttpRequestTagStorage.addRequestTag(reqTag, d)
 			}
 
 			override fun onNext(t: Result<String>) {
