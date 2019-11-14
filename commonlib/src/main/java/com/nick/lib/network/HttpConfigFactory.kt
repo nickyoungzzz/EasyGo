@@ -19,6 +19,7 @@ internal object HttpConfigFactory {
 		.writeTimeout(TIMEOUT, TimeUnit.SECONDS)
 		.readTimeout(TIMEOUT, TimeUnit.SECONDS)
 		.connectTimeout(TIMEOUT, TimeUnit.SECONDS)
+		.callTimeout(TIMEOUT, TimeUnit.SECONDS)
 		.proxy(Proxy.NO_PROXY)
 		.addInterceptor(run {
 			val httpLoggingInterceptor = HttpLoggingInterceptor()
