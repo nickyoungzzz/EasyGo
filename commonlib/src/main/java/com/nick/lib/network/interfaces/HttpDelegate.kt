@@ -3,10 +3,10 @@ package com.nick.lib.network.interfaces
 import com.google.gson.Gson
 import com.nick.lib.network.HttpConfigFactory
 import com.nick.lib.network.HttpResult
-import io.reactivex.Observable
-import io.reactivex.Observer
+import io.reactivex.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -17,7 +17,6 @@ import org.json.JSONArray
 import retrofit2.Response
 import retrofit2.adapter.rxjava2.Result
 import java.io.File
-
 
 class HttpDelegate internal constructor(private val reqUrl: String, private val reqMethod: ReqMethod) {
 
@@ -122,7 +121,7 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 		return this
 	}
 
-	fun execute(): Observable<Result<String>> {
+	private fun request(): Observable<Result<String>> {
 		val realHttpUrl = reqUrl.startsWith(HttpProtocol.HTTP.schema, true) or reqUrl.startsWith(HttpProtocol.HTTPS.schema, true)
 		val url = if (realHttpUrl) reqUrl else retrofit.baseUrl().toString() + reqUrl
 		val httpProcessorService = retrofit.create(HttpProcessorService::class.java)
@@ -154,104 +153,132 @@ class HttpDelegate internal constructor(private val reqUrl: String, private val 
 		return formBodyBuilder.build()
 	}
 
-	fun asString(): HttpResult<String> {
-		return asObject(String::class.java)
-	}
-
-	fun <T> asObject(clazz: Class<T>?): HttpResult<T> {
-		return execute().map { t -> toObject(t, clazz) }.blockingFirst()
-	}
-
-	fun <T> asList(clazz: Class<T>): HttpResult<List<T>> {
-		return execute().map { t -> toList(t, clazz) }.blockingFirst()
-	}
-
-	@Suppress("UNCHECKED_CAST")
-	private fun <T> toList(t: Result<String>, asObjectType: Class<T>): HttpResult<List<T>> {
-		if (t.isError) {
-			return HttpResult.throwable(t.error())
-		} else {
-			val response: Response<String>? = t.response()
-			val gan = Gson()
-			if (response != null) {
-				val code = response.code()
-				val headers = response.headers()
-				if (response.isSuccessful) {
-					val result = response.body() as String
-					val jsonArray = JSONArray(result)
-					val list = arrayListOf<T>()
-					for (index in 0..jsonArray.length()) {
-						val jsonObject = jsonArray[index]
-						list.add(gan.fromJson(jsonObject.toString(), asObjectType))
+	fun execute(): Observable<HttpResult<String>> {
+		return request().flatMap(object : Function<Result<String>, ObservableSource<HttpResult<String>>> {
+			override fun apply(t: Result<String>): ObservableSource<HttpResult<String>> {
+				return Observable.create(object : ObservableOnSubscribe<HttpResult<String>> {
+					override fun subscribe(emitter: ObservableEmitter<HttpResult<String>>) {
+						if (t.isError) {
+							emitter.onError(t.error()!!)
+						} else {
+							val response: Response<String>? = t.response()
+							if (response != null) {
+								val code = response.code()
+								val headers = response.headers()
+								if (response.isSuccessful) {
+									val result = response.body() as String
+									emitter.onNext(HttpResult.success(result, code, headers))
+								} else {
+									val result = response.errorBody()?.string() as String
+									val throwable = Throwable(result)
+									emitter.onError(throwable)
+								}
+							}
+						}
 					}
-					return HttpResult.success(list as List<T>, code, headers)
-				} else {
-					val result = response.errorBody()?.string() as String
-					return HttpResult.error(result, code, headers)
-				}
-			}
-			return HttpResult(ResponseStatus.ERROR)
-		}
-	}
-
-	@Suppress("UNCHECKED_CAST")
-	private fun <T> toObject(t: Result<String>, asObjectType: Class<T>?): HttpResult<T> {
-		if (t.isError) {
-			return HttpResult.throwable(t.error())
-		} else {
-			val response: Response<String>? = t.response()
-			val gan = Gson()
-			if (response != null) {
-				val code = response.code()
-				val headers = response.headers()
-				if (response.isSuccessful) {
-					val result = response.body() as String
-					val success = if (asObjectType == String::class.java) result as T else gan.fromJson(result, asObjectType)
-					return HttpResult.success(success, code, headers)
-				} else {
-					val result = response.errorBody()?.string() as String
-					return HttpResult.error(result, code, headers)
-				}
-			}
-			return HttpResult(ResponseStatus.ERROR)
-		}
-	}
-
-	@Suppress("UNCHECKED_CAST") fun <T> enqueue(httpCallBack: HttpCallBack<T>) {
-		execute().subscribe(object : Observer<Result<String>> {
-			override fun onComplete() {
+				})
 			}
 
-			override fun onSubscribe(d: Disposable) {
-				httpCallBack.onResult(HttpResult.loading())
+			fun asString(): HttpResult<String> {
+				return asObject(String::class.java)
 			}
 
-			override fun onNext(t: Result<String>) {
+			fun <T> asObject(clazz: Class<T>?): HttpResult<T> {
+				return request().map { t -> toObject(t, clazz) }.blockingFirst()
+			}
+
+			fun <T> asList(clazz: Class<T>): HttpResult<List<T>> {
+				return request().map { t -> toList(t, clazz) }.blockingFirst()
+			}
+
+			@Suppress("UNCHECKED_CAST")
+			private fun <T> toList(t: Result<String>, asObjectType: Class<T>): HttpResult<List<T>> {
 				if (t.isError) {
-					httpCallBack.onResult(HttpResult.throwable(t.error()))
+					return HttpResult.throwable(t.error())
 				} else {
 					val response: Response<String>? = t.response()
 					val gan = Gson()
 					if (response != null) {
 						val code = response.code()
 						val headers = response.headers()
-						val type = httpCallBack.getGenericType(0)
 						if (response.isSuccessful) {
 							val result = response.body() as String
-							val success = if (type == String::class.java) result as T else gan.fromJson(result, type)
-							httpCallBack.onResult(HttpResult.success(success, code, headers))
+							val jsonArray = JSONArray(result)
+							val list = arrayListOf<T>()
+							for (index in 0..jsonArray.length()) {
+								val jsonObject = jsonArray[index]
+								list.add(gan.fromJson(jsonObject.toString(), asObjectType))
+							}
+							return HttpResult.success(list as List<T>, code, headers)
 						} else {
 							val result = response.errorBody()?.string() as String
-							httpCallBack.onResult(HttpResult.error(result, code, headers))
+							return HttpResult.error(result, code, headers)
 						}
-					} else {
-						httpCallBack.onResult(HttpResult(ResponseStatus.ERROR))
 					}
+					return HttpResult(ResponseStatus.ERROR)
 				}
 			}
 
-			override fun onError(e: Throwable) {
-				httpCallBack.onResult(HttpResult.throwable(e))
+			@Suppress("UNCHECKED_CAST")
+			private fun <T> toObject(t: Result<String>, asObjectType: Class<T>?): HttpResult<T> {
+				if (t.isError) {
+					return HttpResult.throwable(t.error())
+				} else {
+					val response: Response<String>? = t.response()
+					val gan = Gson()
+					if (response != null) {
+						val code = response.code()
+						val headers = response.headers()
+						if (response.isSuccessful) {
+							val result = response.body() as String
+							val success = if (asObjectType == String::class.java) result as T else gan.fromJson(result, asObjectType)
+							return HttpResult.success(success, code, headers)
+						} else {
+							val result = response.errorBody()?.string() as String
+							return HttpResult.error(result, code, headers)
+						}
+					}
+					return HttpResult(ResponseStatus.ERROR)
+				}
+			}
+
+			@Suppress("UNCHECKED_CAST") fun <T> enqueue(httpCallBack: HttpCallBack<T>) {
+				request().subscribe(object : Observer<Result<String>> {
+					override fun onComplete() {
+					}
+
+					override fun onSubscribe(d: Disposable) {
+						httpCallBack.onResult(HttpResult.loading())
+					}
+
+					override fun onNext(t: Result<String>) {
+						if (t.isError) {
+							httpCallBack.onResult(HttpResult.throwable(t.error()))
+						} else {
+							val response: Response<String>? = t.response()
+							val gan = Gson()
+							if (response != null) {
+								val code = response.code()
+								val headers = response.headers()
+								val type = httpCallBack.getGenericType(0)
+								if (response.isSuccessful) {
+									val result = response.body() as String
+									val success = if (type == String::class.java) result as T else gan.fromJson(result, type)
+									httpCallBack.onResult(HttpResult.success(success, code, headers))
+								} else {
+									val result = response.errorBody()?.string() as String
+									httpCallBack.onResult(HttpResult.error(result, code, headers))
+								}
+							} else {
+								httpCallBack.onResult(HttpResult(ResponseStatus.ERROR))
+							}
+						}
+					}
+
+					override fun onError(e: Throwable) {
+						httpCallBack.onResult(HttpResult.throwable(e))
+					}
+				})
 			}
 		})
 	}
