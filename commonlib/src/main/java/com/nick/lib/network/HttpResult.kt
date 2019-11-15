@@ -3,13 +3,18 @@ package com.nick.lib.network
 import com.nick.lib.network.interfaces.ResponseStatus
 import okhttp3.Headers
 
-class HttpResult<T> constructor(var status: ResponseStatus) {
+class HttpResult<T> constructor(val status: ResponseStatus) {
 
 	var code: Int = 0
+		private set
 	var headers: Headers? = null
+		private set
 	var success: T? = null
+		private set
 	var error: String? = null
+		private set
 	var throwable: Throwable? = null
+		private set
 
 	constructor(status: ResponseStatus, t: T, code: Int, headers: Headers) : this(status) {
 		this.success = t

@@ -3,24 +3,24 @@
 package com.nick.lib.network
 
 import com.nick.lib.network.interfaces.HttpConfig
-import com.nick.lib.network.interfaces.HttpDelegate
+import com.nick.lib.network.interfaces.HttpRequest
 import com.nick.lib.network.interfaces.ReqMethod
 
-fun get(url: String) = HttpDelegate(url, ReqMethod.GET)
+fun String.get() = HttpRequest(this, ReqMethod.GET)
 
-fun post(url: String): HttpDelegate = HttpDelegate(url, ReqMethod.POST)
+fun String.getForm(url: String) = HttpRequest(this, ReqMethod.GET_FORM)
 
-fun getForm(url: String) = HttpDelegate(url, ReqMethod.GET_FORM)
+fun String.post(): HttpRequest = HttpRequest(this, ReqMethod.POST)
 
-fun postForm(url: String) = HttpDelegate(url, ReqMethod.POST_FORM)
+fun String.postForm() = HttpRequest(this, ReqMethod.POST_FORM)
 
-fun put(url: String) = HttpDelegate(url, ReqMethod.PUT)
+fun String.put() = HttpRequest(this, ReqMethod.PUT)
 
-fun putForm(url: String) = HttpDelegate(url, ReqMethod.PUT_FORM)
+fun String.putForm() = HttpRequest(this, ReqMethod.PUT_FORM)
 
-fun delete(url: String) = HttpDelegate(url, ReqMethod.DELETE)
+fun String.delete() = HttpRequest(this, ReqMethod.DELETE)
 
-fun deleteForm(url: String) = HttpDelegate(url, ReqMethod.DELETE_FORM)
+fun String.deleteForm() = HttpRequest(this, ReqMethod.DELETE_FORM)
 
 @Volatile private var hasConfig = false
 
