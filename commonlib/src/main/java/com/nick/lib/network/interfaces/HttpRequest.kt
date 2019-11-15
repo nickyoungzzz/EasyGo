@@ -48,7 +48,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		return this
 	}
 
-	fun addQuerys(queryMap: HashMap<String, String>): HttpRequest {
+	fun addQueries(queryMap: HashMap<String, String>): HttpRequest {
 		if (queryMap.isNotEmpty()) {
 			this.queryMap.forEach {
 				if (!this.queryMap.containsKey(it.key)) {
