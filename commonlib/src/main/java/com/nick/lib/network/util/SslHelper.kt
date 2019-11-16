@@ -1,4 +1,4 @@
-package com.nick.lib.network
+package com.nick.lib.network.util
 
 import java.security.SecureRandom
 import java.security.cert.X509Certificate

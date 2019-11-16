@@ -1,6 +1,7 @@
 package com.nick.lib.network
 
 import com.nick.lib.BuildConfig
+import com.nick.lib.network.util.SslHelper
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

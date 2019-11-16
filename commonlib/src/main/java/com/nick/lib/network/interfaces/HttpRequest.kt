@@ -3,6 +3,7 @@ package com.nick.lib.network.interfaces
 import com.google.gson.Gson
 import com.nick.lib.network.HttpConfigFactory
 import com.nick.lib.network.HttpResult
+import com.nick.lib.network.HttpThrowable
 import com.nick.lib.network.util.parseAsList
 import com.nick.lib.network.util.parseAsObject
 import io.reactivex.Observable
@@ -255,7 +256,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		return request().flatMap { t ->
 			Observable.create { emitter: ObservableEmitter<HttpResult<String>> ->
 				if (t.isError) {
-					emitter.onError(t.error()!!)
+					emitter.onError(HttpThrowable(t.error()!!))
 				} else {
 					val response: Response<String>? = t.response()
 					if (response != null) {
@@ -266,7 +267,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 							emitter.onNext(HttpResult.success(result, code, headers))
 						} else {
 							val result = response.errorBody()?.string() as String
-							val throwable = Throwable(result)
+							val throwable = HttpThrowable(Throwable(result), code)
 							emitter.onError(throwable)
 						}
 					}
