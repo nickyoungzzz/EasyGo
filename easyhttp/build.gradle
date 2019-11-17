@@ -30,7 +30,7 @@ dependencies {
     api rootProject.ext.dependencies["retrofit"]
     api rootProject.ext.dependencies["rxjava"]
     api rootProject.ext.dependencies["rxandroid"]
-    api rootProject.ext.dependencies["adapter-rxjava2"]
+    implementation rootProject.ext.dependencies["adapter-rxjava2"]
     implementation rootProject.ext.dependencies["gson"]
     implementation rootProject.ext.dependencies["converter-scalars"]
     implementation rootProject.ext.dependencies["converter-gson"]
@@ -41,8 +41,8 @@ publish {
     userOrg = 'niekai'
     groupId = 'com.nick.common'
     artifactId = 'easyhttp'
-    publishVersion = '1.0.2'
+    publishVersion = '1.0.3'
     desc = 'this is a lib created with rxjava/retrofit which can be used to call http request'
-    website = 'https://github.com/nickyoungzzz/commonLib'
+    website = 'https://github.com/nickyoungzzz/EasyHttp'
 }
 

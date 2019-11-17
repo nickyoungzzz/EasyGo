@@ -174,7 +174,6 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 			return HttpResult.throwable(t.error())
 		} else {
 			val response: Response<String>? = t.response()
-			val gan = Gson()
 			if (response != null) {
 				val code = response.code()
 				val headers = response.headers()
