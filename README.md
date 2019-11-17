@@ -1,2 +1,2 @@
-# HttpProcessor
-基于rxjava、retrofit、okhttp整合的安卓网络请求链框架
+# EasyHttp
+基于rxjava、retrofit、okhttp整合的Android网络请求链框架
