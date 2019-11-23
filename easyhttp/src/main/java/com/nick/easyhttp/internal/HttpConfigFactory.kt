@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 internal object HttpConfigFactory {
 
-	private const val TIMEOUT = 30L
+	private const val TIMEOUT = 15L
 
 	internal var okHttpClientBuilder = OkHttpClient.Builder()
 		.sslSocketFactory(SslHelper.getSSLSocketFactory(), SslHelper.getTrustManager())

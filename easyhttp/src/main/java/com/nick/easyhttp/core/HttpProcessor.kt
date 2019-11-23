@@ -32,5 +32,3 @@ fun String.deleteForm() = HttpRequest(this, ReqMethod.DELETE_FORM)
 	HttpConfigFactory.retrofit = HttpConfigFactory.retrofitBuilder.baseUrl(httpConfig.baseUrl()).client(client).build()
 	hasConfig = true
 }
-
-data class HttpThrowable @JvmOverloads constructor(var throwable: Throwable, var code: Int = 0) : Throwable(throwable)
