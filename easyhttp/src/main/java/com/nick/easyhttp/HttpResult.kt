@@ -1,6 +1,6 @@
-package com.nick.lib.network
+package com.nick.easyhttp
 
-import com.nick.lib.network.interfaces.ResponseStatus
+import com.nick.easyhttp.enums.ResponseStatus
 import okhttp3.Headers
 
 class HttpResult<T> constructor(val status: ResponseStatus) {
@@ -46,10 +46,6 @@ class HttpResult<T> constructor(val status: ResponseStatus) {
 
 		fun <T> throwable(throwable: Throwable?): HttpResult<T> {
 			return HttpResult(ResponseStatus.ERROR, throwable)
-		}
-
-		fun <T> loading(): HttpResult<T> {
-			return HttpResult(ResponseStatus.LOADING)
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package com.nick.lib.network.interfaces
+package com.nick.easyhttp.enums
 
 enum class HttpProtocol(val schema: String) {
 	HTTP("http://"), HTTPS("https://")

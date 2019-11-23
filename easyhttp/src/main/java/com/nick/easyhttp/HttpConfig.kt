@@ -1,4 +1,4 @@
-package com.nick.lib.network.interfaces
+package com.nick.easyhttp
 
 import okhttp3.OkHttpClient
 

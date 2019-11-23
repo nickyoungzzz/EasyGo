@@ -1,6 +1,6 @@
 @file:JvmName("GsonUtil")
 
-package com.nick.lib.network.util
+package com.nick.easyhttp.util
 
 import com.google.gson.Gson
 import com.google.gson.JsonParser

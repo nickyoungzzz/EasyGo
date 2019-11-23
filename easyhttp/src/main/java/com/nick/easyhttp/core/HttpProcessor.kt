@@ -1,10 +1,10 @@
 @file:JvmName("EasyHttp")
 
-package com.nick.lib.network
+package com.nick.easyhttp.core
 
-import com.nick.lib.network.interfaces.HttpConfig
-import com.nick.lib.network.interfaces.HttpRequest
-import com.nick.lib.network.interfaces.ReqMethod
+import com.nick.easyhttp.HttpConfig
+import com.nick.easyhttp.enums.ReqMethod
+import com.nick.easyhttp.internal.HttpConfigFactory
 
 fun String.get() = HttpRequest(this, ReqMethod.GET)
 

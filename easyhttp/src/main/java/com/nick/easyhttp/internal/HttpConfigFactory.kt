@@ -1,11 +1,8 @@
-package com.nick.lib.network
+package com.nick.easyhttp.internal
 
-import com.nick.lib.BuildConfig
-import com.nick.lib.network.util.SslHelper
+import com.nick.easyhttp.util.SslHelper
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
@@ -21,17 +18,9 @@ internal object HttpConfigFactory {
 		.readTimeout(TIMEOUT, TimeUnit.SECONDS)
 		.connectTimeout(TIMEOUT, TimeUnit.SECONDS)
 		.proxy(Proxy.NO_PROXY)
-		.addInterceptor(run {
-			val httpLoggingInterceptor = HttpLoggingInterceptor()
-			httpLoggingInterceptor.apply {
-				this.level = if (BuildConfig.DEBUG)
-					HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.BASIC
-			}
-		})
 
 	internal var retrofitBuilder = Retrofit.Builder()
 		.baseUrl("https://www.baidu.com/")
-		.addCallAdapterFactory(RxJava2CallAdapterFactory.create())
 		.addConverterFactory(ScalarsConverterFactory.create())
 		.client(okHttpClientBuilder.build())
 
