@@ -1,5 +1,5 @@
 # EasyHttp
-基于rxjava、retrofit、okhttp简单整合的Android网络请求链框架  
+基于kotlin协程、retrofit、okhttp简单整合的Android网络请求链框架  
 ### 一、初始化（在application中）  
 Java：  
 ``` 
