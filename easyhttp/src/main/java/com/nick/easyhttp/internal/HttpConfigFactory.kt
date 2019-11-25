@@ -1,5 +1,6 @@
 package com.nick.easyhttp.internal
 
+import com.nick.easyhttp.HttpResult
 import com.nick.easyhttp.util.SslHelper
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -23,6 +24,12 @@ internal object HttpConfigFactory {
 		.baseUrl("https://www.baidu.com/")
 		.addConverterFactory(ScalarsConverterFactory.create())
 		.client(okHttpClientBuilder.build())
+
+	val defaultResStringHandler = object : HttpResult.ResStringHandler {
+		override fun onHandle(responseString: String): String {
+			return responseString
+		}
+	}
 
 	internal var retrofit: Retrofit? = null
 }

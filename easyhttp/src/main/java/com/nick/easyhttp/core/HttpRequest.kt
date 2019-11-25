@@ -155,6 +155,10 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	}
 
 	suspend fun asString(): HttpResult<String> {
+		return asString(HttpConfigFactory.defaultResStringHandler)
+	}
+
+	suspend fun asString(handler: HttpResult.ResStringHandler): HttpResult<String> {
 		return withContext(Dispatchers.IO) {
 			try {
 				val response = request().execute()
@@ -162,7 +166,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 				val headers = response.headers()
 				if (response.isSuccessful) {
 					val responseBody = response.body() as String
-					HttpResult.success(responseBody, code, headers)
+					HttpResult.success(handler.onHandle(responseBody), code, headers)
 				} else {
 					val result = response.errorBody()?.string() as String
 					HttpResult.error(result, code, headers)
@@ -174,6 +178,10 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	}
 
 	suspend fun <T> asList(clazz: Class<T>): HttpResult<MutableList<T>> {
+		return asList(clazz, HttpConfigFactory.defaultResStringHandler)
+	}
+
+	suspend fun <T> asList(clazz: Class<T>, handler: HttpResult.ResStringHandler): HttpResult<MutableList<T>> {
 		return withContext(Dispatchers.IO) {
 			try {
 				val response = request().execute()
@@ -181,7 +189,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 				val headers = response.headers()
 				if (response.isSuccessful) {
 					val responseBody = response.body() as String
-					HttpResult.success(responseBody.parseAsList(clazz), code, headers)
+					HttpResult.success(handler.onHandle(responseBody).parseAsList(clazz), code, headers)
 				} else {
 					val result = response.errorBody()?.string() as String
 					HttpResult.error(result, code, headers)
@@ -193,6 +201,10 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	}
 
 	suspend fun <T> asObject(clazz: Class<T>): HttpResult<T> {
+		return asObject(clazz, HttpConfigFactory.defaultResStringHandler)
+	}
+
+	suspend fun <T> asObject(clazz: Class<T>, handler: HttpResult.ResStringHandler): HttpResult<T> {
 		return withContext(Dispatchers.IO) {
 			try {
 				val response = request().execute()
@@ -200,7 +212,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 				val headers = response.headers()
 				if (response.isSuccessful) {
 					val responseBody = response.body() as String
-					HttpResult.success(responseBody.parseAsObject(clazz), code, headers)
+					HttpResult.success(handler.onHandle(responseBody).parseAsObject(clazz), code, headers)
 				} else {
 					val result = response.errorBody()?.string() as String
 					HttpResult.error(result, code, headers)

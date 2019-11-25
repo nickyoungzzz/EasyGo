@@ -48,4 +48,12 @@ class HttpResult<T> constructor(val status: ResponseStatus) {
 			return HttpResult(ResponseStatus.ERROR, throwable)
 		}
 	}
+
+	interface ResStringHandler {
+		fun onHandle(responseString: String): String
+
+		fun onError(errorString: String): String = errorString
+	}
+
+	class HttpThrowable @JvmOverloads constructor(errorMessage: String, var code: Int = 0, var headers: Headers? = null) : Throwable(errorMessage)
 }
