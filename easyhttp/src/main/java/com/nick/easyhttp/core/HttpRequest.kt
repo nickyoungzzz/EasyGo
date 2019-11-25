@@ -169,7 +169,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 					HttpResult.success(handler.onHandle(responseBody), code, headers)
 				} else {
 					val result = response.errorBody()?.string() as String
-					HttpResult.error(result, code, headers)
+					HttpResult.error(handler.onError(result), code, headers)
 				}
 			} catch (e: IOException) {
 				HttpResult.throwable<String>(e)
@@ -192,7 +192,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 					HttpResult.success(handler.onHandle(responseBody).parseAsList(clazz), code, headers)
 				} else {
 					val result = response.errorBody()?.string() as String
-					HttpResult.error(result, code, headers)
+					HttpResult.error(handler.onError(result), code, headers)
 				}
 			} catch (e: IOException) {
 				HttpResult.throwable<MutableList<T>>(e)
@@ -215,7 +215,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 					HttpResult.success(handler.onHandle(responseBody).parseAsObject(clazz), code, headers)
 				} else {
 					val result = response.errorBody()?.string() as String
-					HttpResult.error(result, code, headers)
+					HttpResult.error(handler.onError(result), code, headers)
 				}
 			} catch (e: IOException) {
 				HttpResult.throwable<T>(e)
