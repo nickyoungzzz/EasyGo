@@ -1,4 +1,4 @@
-package com.nick.easyhttp
+package com.nick.easyhttp.config
 
 import okhttp3.OkHttpClient
 

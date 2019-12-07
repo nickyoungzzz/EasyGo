@@ -1,10 +1,11 @@
 package com.nick.easyhttp.core
 
-import com.nick.easyhttp.HttpResult
 import com.nick.easyhttp.enums.HttpProtocol
 import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.internal.HttpConfigFactory
 import com.nick.easyhttp.internal.HttpService
+import com.nick.easyhttp.result.HttpResult
+import com.nick.easyhttp.result.ResStringHandler
 import com.nick.easyhttp.util.parseAsList
 import com.nick.easyhttp.util.parseAsObject
 import kotlinx.coroutines.*
@@ -37,7 +38,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private lateinit var call: Call<String>
 
-	private var handler = HttpResult.ResStringHandler.defaultStringHandler
+	private var handler = ResStringHandler.defaultStringHandler
 
 	private val retrofit by lazy {
 		HttpConfigFactory.retrofit
@@ -129,7 +130,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		return formBodyBuilder.build()
 	}
 
-	fun addResStringHandler(resStringHandler: HttpResult.ResStringHandler): HttpRequest {
+	fun addResStringHandler(resStringHandler: ResStringHandler): HttpRequest {
 		this.handler = resStringHandler
 		return this
 	}

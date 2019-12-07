@@ -2,7 +2,7 @@
 
 package com.nick.easyhttp.core
 
-import com.nick.easyhttp.HttpConfig
+import com.nick.easyhttp.config.HttpConfig
 import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.internal.HttpConfigFactory
 
