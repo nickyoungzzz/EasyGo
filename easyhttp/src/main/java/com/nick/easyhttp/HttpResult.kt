@@ -51,8 +51,13 @@ class HttpResult<T> constructor(val status: ResponseStatus) {
 
 	interface ResStringHandler {
 		fun onHandle(responseString: String): String
-
 		fun onError(errorString: String): String = errorString
+
+		companion object {
+			val defaultStringHandler = object : ResStringHandler {
+				override fun onHandle(responseString: String): String = responseString
+			}
+		}
 	}
 
 	class HttpThrowable @JvmOverloads constructor(errorMessage: String, var code: Int = 0, var headers: Headers? = null) : Throwable(errorMessage)

@@ -37,6 +37,8 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private lateinit var call: Call<String>
 
+	private var handler = HttpResult.ResStringHandler.defaultStringHandler
+
 	private val retrofit by lazy {
 		HttpConfigFactory.retrofit
 			?: throw RuntimeException("please config EasyHttp first!!!")
@@ -127,6 +129,11 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		return formBodyBuilder.build()
 	}
 
+	fun addResStringHandler(resStringHandler: HttpResult.ResStringHandler): HttpRequest {
+		this.handler = resStringHandler
+		return this
+	}
+
 	private fun request(): Call<String> {
 		val realHttpUrl = reqUrl.startsWith(HttpProtocol.HTTP.schema, true) or reqUrl.startsWith(HttpProtocol.HTTPS.schema, true)
 		val url = if (realHttpUrl) reqUrl else retrofit.baseUrl().toString().plus(reqUrl)
@@ -154,11 +161,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		}
 	}
 
-	suspend fun asString(): HttpResult<String> {
-		return asString(HttpConfigFactory.defaultResStringHandler)
-	}
-
-	suspend fun asString(handler: HttpResult.ResStringHandler): HttpResult<String> {
+	suspend fun executeAsString(): HttpResult<String> {
 		return withContext(Dispatchers.IO) {
 			try {
 				val response = request().execute()
@@ -177,11 +180,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		}
 	}
 
-	suspend fun <T> asList(clazz: Class<T>): HttpResult<MutableList<T>> {
-		return asList(clazz, HttpConfigFactory.defaultResStringHandler)
-	}
-
-	suspend fun <T> asList(clazz: Class<T>, handler: HttpResult.ResStringHandler): HttpResult<MutableList<T>> {
+	suspend fun <T> executeAsList(clazz: Class<T>): HttpResult<MutableList<T>> {
 		return withContext(Dispatchers.IO) {
 			try {
 				val response = request().execute()
@@ -200,11 +199,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		}
 	}
 
-	suspend fun <T> asObject(clazz: Class<T>): HttpResult<T> {
-		return asObject(clazz, HttpConfigFactory.defaultResStringHandler)
-	}
-
-	suspend fun <T> asObject(clazz: Class<T>, handler: HttpResult.ResStringHandler): HttpResult<T> {
+	suspend fun <T> executeAsObject(clazz: Class<T>): HttpResult<T> {
 		return withContext(Dispatchers.IO) {
 			try {
 				val response = request().execute()
