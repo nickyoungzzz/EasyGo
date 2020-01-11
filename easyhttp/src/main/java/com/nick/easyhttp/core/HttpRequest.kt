@@ -5,7 +5,6 @@ import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.internal.HttpConfigFactory
 import com.nick.easyhttp.internal.HttpService
 import com.nick.easyhttp.result.HttpResult
-import com.nick.easyhttp.result.ResStringHandler
 import com.nick.easyhttp.util.parseAsList
 import com.nick.easyhttp.util.parseAsObject
 import kotlinx.coroutines.*
@@ -15,7 +14,6 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
-import retrofit2.Response
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -37,8 +35,6 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	private var jsonString = ""
 
 	private lateinit var call: Call<String>
-
-	private var handler = ResStringHandler.defaultStringHandler
 
 	private val retrofit by lazy {
 		HttpConfigFactory.retrofit
@@ -130,11 +126,6 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		return formBodyBuilder.build()
 	}
 
-	fun addResStringHandler(resStringHandler: ResStringHandler): HttpRequest {
-		this.handler = resStringHandler
-		return this
-	}
-
 	private fun request(): Call<String> {
 		val realHttpUrl = reqUrl.startsWith(HttpProtocol.HTTP.schema, true) or reqUrl.startsWith(HttpProtocol.HTTPS.schema, true)
 		val url = if (realHttpUrl) reqUrl else retrofit.baseUrl().toString().plus(reqUrl)
@@ -156,13 +147,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		return call
 	}
 
-	suspend fun execute(): Response<String> {
-		return withContext(Dispatchers.IO) {
-			request().execute()
-		}
-	}
-
-	suspend fun executeAsString(): HttpResult<String> {
+	private suspend fun <T> execute(transform: (data: String) -> T): HttpResult<T> {
 		return withContext(Dispatchers.IO) {
 			try {
 				val response = request().execute()
@@ -170,53 +155,30 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 				val headers = response.headers()
 				if (response.isSuccessful) {
 					val responseBody = response.body() as String
-					HttpResult.success(handler.onHandle(responseBody), code, headers)
+					HttpResult.success(transform(responseBody), code, headers)
 				} else {
 					val result = response.errorBody()?.string() as String
-					HttpResult.error(handler.onError(result), code, headers)
-				}
-			} catch (e: IOException) {
-				HttpResult.throwable<String>(e)
-			}
-		}
-	}
-
-	suspend fun <T> executeAsList(clazz: Class<T>): HttpResult<MutableList<T>> {
-		return withContext(Dispatchers.IO) {
-			try {
-				val response = request().execute()
-				val code = response.code()
-				val headers = response.headers()
-				if (response.isSuccessful) {
-					val responseBody = response.body() as String
-					HttpResult.success(handler.onHandle(responseBody).parseAsList(clazz), code, headers)
-				} else {
-					val result = response.errorBody()?.string() as String
-					HttpResult.error(handler.onError(result), code, headers)
-				}
-			} catch (e: IOException) {
-				HttpResult.throwable<MutableList<T>>(e)
-			}
-		}
-	}
-
-	suspend fun <T> executeAsObject(clazz: Class<T>): HttpResult<T> {
-		return withContext(Dispatchers.IO) {
-			try {
-				val response = request().execute()
-				val code = response.code()
-				val headers = response.headers()
-				if (response.isSuccessful) {
-					val responseBody = response.body() as String
-					HttpResult.success(handler.onHandle(responseBody).parseAsObject(clazz), code, headers)
-				} else {
-					val result = response.errorBody()?.string() as String
-					HttpResult.error(handler.onError(result), code, headers)
+					HttpResult.error(result, code, headers)
 				}
 			} catch (e: IOException) {
 				HttpResult.throwable<T>(e)
 			}
 		}
+	}
+
+	@JvmOverloads
+	suspend fun executeAsString(transform: (data: String) -> String = { d -> d }): HttpResult<String> {
+		return execute { data -> transform(data) }
+	}
+
+	@JvmOverloads
+	suspend fun <T> executeAsList(clazz: Class<T>, transform: (data: String) -> String = { d -> d }): HttpResult<MutableList<T>> {
+		return execute { data -> transform(data).parseAsList(clazz) }
+	}
+
+	@JvmOverloads
+	suspend fun <T> executeAsObject(clazz: Class<T>, transform: (data: String) -> String = { d -> d }): HttpResult<T> {
+		return execute { data -> transform(data).parseAsObject(clazz) }
 	}
 
 	fun cancelRequest() {
