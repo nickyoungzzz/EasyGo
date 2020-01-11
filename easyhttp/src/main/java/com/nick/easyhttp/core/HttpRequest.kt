@@ -7,7 +7,8 @@ import com.nick.easyhttp.internal.HttpService
 import com.nick.easyhttp.result.HttpResult
 import com.nick.easyhttp.util.parseAsList
 import com.nick.easyhttp.util.parseAsObject
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -18,7 +19,7 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 
-class HttpRequest internal constructor(private val reqUrl: String, private val reqMethod: ReqMethod) : CoroutineScope by MainScope() {
+class HttpRequest internal constructor(private val reqUrl: String, private val reqMethod: ReqMethod) {
 
 	private var reqTag: Any? = null
 
@@ -185,6 +186,5 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		if (call.isExecuted && !call.isCanceled) {
 			call.cancel()
 		}
-		cancel()
 	}
 }
