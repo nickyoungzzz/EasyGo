@@ -1,8 +1,8 @@
 package com.nick.easyhttp.core
 
+import com.nick.easyhttp.config.RetrofitConfig
 import com.nick.easyhttp.enums.HttpProtocol
 import com.nick.easyhttp.enums.ReqMethod
-import com.nick.easyhttp.internal.HttpConfigFactory
 import com.nick.easyhttp.internal.HttpService
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
@@ -20,7 +20,7 @@ class RetrofitHttpHandler : IHttpHandler {
 	private var call: Call<String>? = null
 
 	private val retrofit by lazy {
-		HttpConfigFactory.retrofit
+		RetrofitConfig.retrofit
 			?: throw RuntimeException("please config EasyHttp first!!!")
 	}
 
@@ -46,7 +46,6 @@ class RetrofitHttpHandler : IHttpHandler {
 	}
 
 	private fun call(httpReq: HttpReq): Call<String> {
-
 		val reqUrl = httpReq.url
 		val reqMethod = httpReq.reqMethod
 		val reqTag = httpReq.reqTag

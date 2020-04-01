@@ -2,9 +2,8 @@
 
 package com.nick.easyhttp.core
 
-import com.nick.easyhttp.config.HttpConfig
+import com.nick.easyhttp.config.IHttpHandlerConfig
 import com.nick.easyhttp.enums.ReqMethod
-import com.nick.easyhttp.internal.HttpConfigFactory
 
 fun String.get() = HttpRequest(this, ReqMethod.GET)
 
@@ -24,11 +23,17 @@ fun String.deleteForm() = HttpRequest(this, ReqMethod.DELETE_FORM)
 
 @Volatile private var hasConfig = false
 
+private val httpConfigList = arrayListOf<IHttpHandlerConfig>()
+
 @Synchronized fun configEasyHttp(httpConfig: HttpConfig) {
 	if (hasConfig) {
 		throw RuntimeException("Do not config again")
 	}
-	val client = httpConfig.okHttpConfig(HttpConfigFactory.okHttpClientBuilder)
-	HttpConfigFactory.retrofit = HttpConfigFactory.retrofitBuilder.baseUrl(httpConfig.baseUrl()).client(client).build()
+	httpConfig.onHttpConfig(httpConfigList)
+	httpConfigList.filter { it.needConfig() }.forEach { it.config() }
 	hasConfig = true
+}
+
+interface HttpConfig {
+	fun onHttpConfig(httpConfigs: MutableList<IHttpHandlerConfig>)
 }

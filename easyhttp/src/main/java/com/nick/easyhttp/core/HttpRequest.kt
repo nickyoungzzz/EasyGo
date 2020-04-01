@@ -4,8 +4,6 @@ import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.result.HttpResult
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -104,8 +102,8 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 			.build()
 	}
 
-	private suspend fun <T> request(transform: (data: String) -> T): HttpResult<T> {
-		return withContext(Dispatchers.IO) {
+	private fun <T> request(transform: (data: String) -> T): HttpResult<T> {
+		return run {
 			val httpResp = httpHandler.execute(httpReq())
 			if (httpResp.isSuccessful) {
 				HttpResult.success(transform(httpResp.resp!!), httpResp.code, httpResp.headers!!)
@@ -119,7 +117,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		}
 	}
 
-	suspend fun <T> execute(transform: (data: String) -> T): HttpResult<T> {
+	fun <T> execute(transform: (data: String) -> T): HttpResult<T> {
 		return request { data -> transform(data) }
 	}
 

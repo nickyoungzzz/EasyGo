@@ -1,7 +1,6 @@
 package com.nick.easyhttp.result
 
 import com.nick.easyhttp.enums.ResponseStatus
-import okhttp3.Headers
 
 class HttpResult<T> constructor(val status: ResponseStatus) {
 
