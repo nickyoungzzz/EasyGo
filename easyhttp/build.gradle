@@ -31,7 +31,7 @@ dependencies {
     api rootProject.ext.dependencies["logging-interceptor"]
     implementation rootProject.ext.dependencies["gson"]
     implementation rootProject.ext.dependencies["converter-scalars"]
-    implementation rootProject.ext.dependencies["kotlinx-coroutines-android"]
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.5'
 }
 
 publish {
