@@ -4,6 +4,7 @@ import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.result.HttpResult
+import java.io.IOException
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -138,14 +139,21 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		return request { data -> transform(data) }
 	}
 
-	fun execute(download: (current: Long, total: Long, finish: Boolean, canceled: Boolean) -> Unit) {
-		val httpResp = httpHandler.execute(httpReq())
+	@JvmOverloads
+	fun execute(ex: (e: Exception) -> Unit = {}, download: (current: Long, total: Long, finish: Boolean, canceled: Boolean) -> Unit) {
+		val range = if (downloadParam?.breakPoint!!) downloadParam?.source!!.length() else 0
+		val httpResp = httpHandler.execute(httpReq().apply { headerMap["Range"] = "${range}-" })
 		if (httpResp.isSuccessful) {
-			downloadHandler.saveFile(httpResp.inputStream!!, downloadParam?.source!!, downloadParam?.breakPoint!!, httpResp.contentLength) { state ->
-				download(state.current, state.total, state.finished, state.canceled)
+			try {
+				downloadHandler.saveFile(httpResp.inputStream!!, downloadParam?.source!!, downloadParam?.breakPoint!!,
+					httpResp.contentLength) { state ->
+					download(state.current, state.total, state.finished, state.canceled)
+				}
+			} catch (e: IOException) {
+				ex(httpResp.exception!!)
 			}
 		} else {
-			println(httpResp.exception)
+			ex(httpResp.exception!!)
 		}
 	}
 
