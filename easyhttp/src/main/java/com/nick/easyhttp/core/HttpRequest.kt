@@ -25,7 +25,13 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private var jsonString = ""
 
+	private var asDownload = false
+
 	private var httpHandler: IHttpHandler = RetrofitHttpHandler()
+
+	private var downloadHandler: IDownloadHandler = OkIoDownHandler()
+
+	private var downloadParam: IDownloadHandler.DownloadParam? = null
 
 	fun addQuery(key: String, value: String) = apply {
 		queryMap[key] = value
@@ -87,6 +93,12 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		this.isMultiPart = multiPart
 	}
 
+	@JvmOverloads
+	fun asDownload(downloadParam: IDownloadHandler.DownloadParam = IDownloadHandler.DownloadParam()) = apply {
+		this.asDownload = true
+		this.downloadParam = downloadParam
+	}
+
 	fun setHttpHandler(httpHandler: IHttpHandler) = apply {
 		this.httpHandler = httpHandler
 	}
@@ -96,9 +108,14 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 			HttpInvocation(httpHandler, httpHandlerInterceptor, httpReq())) as IHttpHandler
 	}
 
+	fun setDownloadHandler(downloadHandler: IDownloadHandler) = apply {
+		this.downloadHandler = downloadHandler
+	}
+
 	private fun httpReq(): HttpReq {
 		return HttpReq.Builder().url(reqUrl).reqMethod(reqMethod).reqTag(reqTag).queryMap(queryMap).fieldMap(fieldMap)
 			.headerMap(headerMap).multipartBody(multipartBody).isMultiPart(isMultiPart).jsonString(jsonString)
+			.asDownload(asDownload)
 			.build()
 	}
 
@@ -121,8 +138,22 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		return request { data -> transform(data) }
 	}
 
+	fun execute(download: (current: Long, total: Long, finish: Boolean, canceled: Boolean) -> Unit) {
+		val httpResp = httpHandler.execute(httpReq())
+		if (httpResp.isSuccessful) {
+			downloadHandler.saveFile(httpResp.inputStream!!, downloadParam?.source!!, downloadParam?.breakPoint!!, httpResp.contentLength) { state ->
+				download(state.current, state.total, state.finished, state.canceled)
+			}
+		} else {
+			println(httpResp.exception)
+		}
+	}
+
 	fun cancelRequest() {
 		httpHandler.cancel()
+		if (asDownload) {
+			downloadHandler.cancel()
+		}
 	}
 
 	internal class HttpInvocation constructor(var any: Any, var httpInterceptor: HttpInterceptor, var httpReq: HttpReq) : InvocationHandler {

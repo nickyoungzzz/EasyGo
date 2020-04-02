@@ -11,13 +11,14 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody
 import retrofit2.Call
 import java.io.File
 import java.io.IOException
 
 class RetrofitHttpHandler : IHttpHandler {
 
-	private var call: Call<String>? = null
+	private var call: Call<ResponseBody>? = null
 
 	private val retrofit by lazy {
 		RetrofitConfig.retrofit
@@ -28,10 +29,13 @@ class RetrofitHttpHandler : IHttpHandler {
 		val httpRespBuilder = HttpResp.Builder()
 		try {
 			val response = call(httpReq).execute()
-			val resp = if (response.isSuccessful) response.body() else response.errorBody()?.string()
+			val responseBody = response.body()
+			val resp = if (response.isSuccessful && !httpReq.asDownload) responseBody?.string() else response.errorBody()?.string()
 			httpRespBuilder.isSuccessful(response.isSuccessful)
 				.code(response.code())
 				.headers(response.headers().toList())
+				.contentLength(responseBody?.contentLength()!!)
+				.byteData(responseBody.byteStream())
 				.resp(resp)
 		} catch (e: IOException) {
 			httpRespBuilder.isSuccessful(false).exception(e).build()
@@ -45,7 +49,7 @@ class RetrofitHttpHandler : IHttpHandler {
 		}
 	}
 
-	private fun call(httpReq: HttpReq): Call<String> {
+	private fun call(httpReq: HttpReq): Call<ResponseBody> {
 		val reqUrl = httpReq.url
 		val reqMethod = httpReq.reqMethod
 		val reqTag = httpReq.reqTag
@@ -57,22 +61,26 @@ class RetrofitHttpHandler : IHttpHandler {
 		val jsonString = httpReq.jsonString
 		val realHttpUrl = reqUrl.startsWith(HttpProtocol.HTTP.schema, true) or reqUrl.startsWith(HttpProtocol.HTTPS.schema, true)
 		val url = if (realHttpUrl) reqUrl else retrofit.baseUrl().toString().plus(reqUrl)
-		val httpProcessorService = retrofit.create(HttpService::class.java)
+		val httpService = retrofit.create(HttpService::class.java)
 		val requestBody = jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())
 		call = when (reqMethod) {
-			ReqMethod.GET -> httpProcessorService.get(url, headerMap, queryMap, reqTag)
-			ReqMethod.POST -> httpProcessorService.post(url, headerMap, queryMap, requestBody, reqTag)
-			ReqMethod.GET_FORM -> httpProcessorService.getForm(url, headerMap, queryMap, fieldMap, reqTag)
-			ReqMethod.POST_FORM -> httpProcessorService.post(url, headerMap, queryMap,
+			ReqMethod.GET ->
+				if (httpReq.asDownload) httpService.getDownload(url, headerMap, queryMap, reqTag)
+				else httpService.get(url, headerMap, queryMap, reqTag)
+			ReqMethod.POST ->
+				if (httpReq.asDownload) httpService.postDownload(url, headerMap, queryMap, requestBody, reqTag)
+				else httpService.post(url, headerMap, queryMap, requestBody, reqTag)
+			ReqMethod.GET_FORM -> httpService.getForm(url, headerMap, queryMap, fieldMap, reqTag)
+			ReqMethod.POST_FORM -> httpService.post(url, headerMap, queryMap,
 				if (isMultiPart) constructMultiPartBody(multipartBody) else constructFormBody(fieldMap), reqTag)
-			ReqMethod.PUT -> httpProcessorService.put(url, headerMap, queryMap, requestBody, reqTag)
-			ReqMethod.DELETE -> httpProcessorService.delete(url, headerMap, queryMap, requestBody, reqTag)
-			ReqMethod.PUT_FORM -> httpProcessorService.put(url, headerMap, queryMap,
+			ReqMethod.PUT -> httpService.put(url, headerMap, queryMap, requestBody, reqTag)
+			ReqMethod.DELETE -> httpService.delete(url, headerMap, queryMap, requestBody, reqTag)
+			ReqMethod.PUT_FORM -> httpService.put(url, headerMap, queryMap,
 				if (isMultiPart) constructMultiPartBody(multipartBody) else constructFormBody(fieldMap), reqTag)
-			ReqMethod.DELETE_FORM -> httpProcessorService.delete(url, headerMap, queryMap,
+			ReqMethod.DELETE_FORM -> httpService.delete(url, headerMap, queryMap,
 				if (isMultiPart) constructMultiPartBody(multipartBody) else constructFormBody(fieldMap), reqTag)
 		}
-		return call as Call<String>
+		return call as Call<ResponseBody>
 	}
 
 	private fun constructFormBody(fieldMap: HashMap<String, String>): FormBody {

@@ -1,8 +1,6 @@
 package com.nick.easyhttp.result
 
-import android.content.ContentQueryMap
 import com.nick.easyhttp.enums.ReqMethod
-import okhttp3.MultipartBody
 
 class HttpReq internal constructor(builder: Builder) {
 
@@ -15,6 +13,7 @@ class HttpReq internal constructor(builder: Builder) {
 	var multipartBody = builder.multipartBody
 	var isMultiPart = builder.isMultiPart
 	var jsonString = builder.jsonString
+	var asDownload = builder.asDownload
 
 	fun newBuilder() = Builder(this)
 
@@ -29,6 +28,7 @@ class HttpReq internal constructor(builder: Builder) {
 		internal var multipartBody = hashMapOf<String, Any>()
 		internal var isMultiPart = false
 		internal var jsonString = "{}"
+		internal var asDownload = false
 
 		internal constructor(httpReq: HttpReq) : this() {
 			this.url = httpReq.url
@@ -40,6 +40,7 @@ class HttpReq internal constructor(builder: Builder) {
 			this.multipartBody = httpReq.multipartBody
 			this.isMultiPart = httpReq.isMultiPart
 			this.jsonString = httpReq.jsonString
+			this.asDownload = httpReq.asDownload
 		}
 
 		fun url(url: String) = apply { this.url = url }
@@ -59,6 +60,8 @@ class HttpReq internal constructor(builder: Builder) {
 		fun isMultiPart(isMultipart: Boolean) = apply { this.isMultiPart = isMultipart }
 
 		fun jsonString(jsonString: String) = apply { this.jsonString = jsonString }
+
+		fun asDownload(asDownload: Boolean) = apply { this.asDownload = asDownload }
 
 		fun build() = HttpReq(this)
 	}
