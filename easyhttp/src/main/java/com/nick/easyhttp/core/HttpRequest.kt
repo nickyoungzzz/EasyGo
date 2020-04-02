@@ -24,7 +24,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private var isMultiPart = false
 
-	private var jsonString = ""
+	private var jsonString = "{}"
 
 	private var asDownload = false
 
@@ -140,9 +140,10 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	}
 
 	@JvmOverloads
-	fun execute(ex: (e: Exception) -> Unit = {}, download: (current: Long, total: Long, finish: Boolean, canceled: Boolean) -> Unit) {
-		val range = if (downloadParam?.breakPoint!!) downloadParam?.source!!.length() else 0
-		val httpResp = httpHandler.execute(httpReq().apply { headerMap["Range"] = "${range}-" })
+	fun execute(ex: (e: Exception) -> Unit = {}, download: (current: Long, total: Long, finish: Boolean, canceled: Boolean) -> Unit): HttpRequest {
+		val source = downloadParam?.source
+		val range = if (downloadParam?.breakPoint!! && source?.exists()!!) source.length() else 0
+		val httpResp = httpHandler.execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })
 		if (httpResp.isSuccessful) {
 			try {
 				downloadHandler.saveFile(httpResp.inputStream!!, downloadParam?.source!!, downloadParam?.breakPoint!!,
@@ -155,6 +156,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		} else {
 			ex(httpResp.exception!!)
 		}
+		return this
 	}
 
 	fun cancelRequest() {
