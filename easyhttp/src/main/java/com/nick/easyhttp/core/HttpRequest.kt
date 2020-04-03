@@ -1,5 +1,11 @@
 package com.nick.easyhttp.core
 
+import com.nick.easyhttp.core.download.DownloadParam
+import com.nick.easyhttp.core.download.DownloadState
+import com.nick.easyhttp.core.download.IDownloadHandler
+import com.nick.easyhttp.core.download.OkIoDownHandler
+import com.nick.easyhttp.core.req.IHttpHandler
+import com.nick.easyhttp.core.req.RetrofitHttpHandler
 import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
@@ -32,7 +38,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private var downloadHandler: IDownloadHandler = OkIoDownHandler()
 
-	private var downloadParam: IDownloadHandler.DownloadParam? = null
+	private lateinit var downloadParam: DownloadParam
 
 	fun addQuery(key: String, value: String) = apply {
 		queryMap[key] = value
@@ -90,12 +96,12 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		this.reqTag = reqTag
 	}
 
-	fun isMultiPart(multiPart: Boolean) = apply {
-		this.isMultiPart = multiPart
+	fun isMultiPart() = apply {
+		this.isMultiPart = true
 	}
 
 	@JvmOverloads
-	fun asDownload(downloadParam: IDownloadHandler.DownloadParam = IDownloadHandler.DownloadParam()) = apply {
+	fun asDownload(downloadParam: DownloadParam = DownloadParam()) = apply {
 		this.asDownload = true
 		this.downloadParam = downloadParam
 	}
@@ -140,21 +146,20 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	}
 
 	@JvmOverloads
-	fun execute(ex: (e: Exception) -> Unit = {}, download: (current: Long, total: Long, finish: Boolean, canceled: Boolean) -> Unit): HttpRequest {
-		val source = downloadParam?.source
-		val range = if (downloadParam?.breakPoint!! && source?.exists()!!) source.length() else 0
+	fun execute(exc: (e: Exception) -> Unit = {}, download: (downloadState: DownloadState) -> Unit): HttpRequest {
+		val source = downloadParam.source
+		val range = if (downloadParam.breakPoint && source.exists()) source.length() else 0
 		val httpResp = httpHandler.execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })
 		if (httpResp.isSuccessful) {
 			try {
-				downloadHandler.saveFile(httpResp.inputStream!!, downloadParam?.source!!, downloadParam?.breakPoint!!,
-					httpResp.contentLength) { state ->
-					download(state.current, state.total, state.finished, state.canceled)
+				downloadHandler.saveFile(httpResp.inputStream!!, downloadParam, httpResp.contentLength) { state ->
+					download(state)
 				}
 			} catch (e: IOException) {
-				ex(httpResp.exception!!)
+				exc(e)
 			}
 		} else {
-			ex(httpResp.exception!!)
+			exc(httpResp.exception!!)
 		}
 		return this
 	}

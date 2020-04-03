@@ -1,4 +1,4 @@
-package com.nick.easyhttp.core
+package com.nick.easyhttp.core.req
 
 import com.nick.easyhttp.config.RetrofitConfig
 import com.nick.easyhttp.enums.HttpProtocol

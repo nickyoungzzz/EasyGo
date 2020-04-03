@@ -1,23 +1,25 @@
-package com.nick.easyhttp.core
+package com.nick.easyhttp.core.download
 
 import okio.*
-import java.io.File
 import java.io.InputStream
 
 class OkIoDownHandler : IDownloadHandler {
 
 	@Volatile private var isCanceled = false
 
-	override fun saveFile(inputStream: InputStream, file: File, breakPoint: Boolean, contentLength: Long,
-	                      listener: (state: IDownloadHandler.DownloadState) -> Unit
+	override fun saveFile(inputStream: InputStream, downloadParam: DownloadParam, contentLength: Long,
+	                      listener: (state: DownloadState) -> Unit
 	) {
+		val file = downloadParam.source
+		val breakPoint = downloadParam.breakPoint
 		if (!file.exists() || !breakPoint) {
 			file.delete()
 			file.createNewFile()
 		}
-		val downloadState: IDownloadHandler.DownloadState = IDownloadHandler.DownloadState(file.length(),
+		val downloadState = DownloadState(file.length(),
 			file.length() + contentLength, finished = false, canceled = false)
 		file.appendingSink().buffer().writeAll(object : ForwardingSource(inputStream.source()) {
+
 			private var currentP = file.length()
 
 			override fun read(sink: Buffer, byteCount: Long): Long {
@@ -40,8 +42,6 @@ class OkIoDownHandler : IDownloadHandler {
 	}
 
 	override fun cancel() {
-		println("cancel")
 		isCanceled = true
-		println(isCanceled)
 	}
 }
