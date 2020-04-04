@@ -5,5 +5,6 @@ import com.nick.easyhttp.result.HttpResp
 
 interface IHttpHandler {
 	fun execute(httpReq: HttpReq): HttpResp
+	fun reqConfig(httpReq: HttpReq): HttpReq
 	fun cancel()
 }

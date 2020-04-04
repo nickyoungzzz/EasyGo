@@ -28,7 +28,7 @@ class RetrofitHttpHandler : IHttpHandler {
 	override fun execute(httpReq: HttpReq): HttpResp {
 		val httpRespBuilder = HttpResp.Builder()
 		try {
-			val response = call(httpReq).execute()
+			val response = call(reqConfig(httpReq)).execute()
 			val responseBody = response.body()
 			val resp = if (response.isSuccessful && !httpReq.asDownload) responseBody?.string() else response.errorBody()?.string()
 			httpRespBuilder.isSuccessful(response.isSuccessful)
@@ -41,6 +41,13 @@ class RetrofitHttpHandler : IHttpHandler {
 			httpRespBuilder.isSuccessful(false).exception(e).build()
 		}
 		return httpRespBuilder.build()
+	}
+
+	override fun reqConfig(httpReq: HttpReq): HttpReq {
+		return httpReq.apply {
+			headerMap["hello"] = "world"
+			headerMap.remove("name")
+		}
 	}
 
 	override fun cancel() {

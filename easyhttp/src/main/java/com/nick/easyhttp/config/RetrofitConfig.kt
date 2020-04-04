@@ -2,6 +2,7 @@ package com.nick.easyhttp.config
 
 import com.nick.easyhttp.util.SslHelper
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.net.Proxy
@@ -22,6 +23,7 @@ class RetrofitConfig : IHttpHandlerConfig {
 		private var okHttpClientBuilder = OkHttpClient.Builder()
 			.sslSocketFactory(SslHelper.getSSLSocketFactory(), SslHelper.getTrustManager())
 			.hostnameVerifier(SslHelper.getHostnameVerifier())
+			.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
 			.writeTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.readTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.connectTimeout(TIMEOUT, TimeUnit.SECONDS)

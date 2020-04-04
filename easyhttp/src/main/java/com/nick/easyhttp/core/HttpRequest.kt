@@ -110,7 +110,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		this.httpHandler = httpHandler
 	}
 
-	fun setHttpInterceptor(httpHandlerInterceptor: HttpInterceptor) = apply {
+	fun setHttpInterceptor(httpHandlerInterceptor: IHttpInterceptor) = apply {
 		this.httpHandler = Proxy.newProxyInstance(httpHandler.javaClass.classLoader, httpHandler.javaClass.interfaces,
 			HttpInvocation(httpHandler, httpHandlerInterceptor, httpReq())) as IHttpHandler
 	}
@@ -171,7 +171,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		}
 	}
 
-	internal class HttpInvocation constructor(var any: Any, var httpInterceptor: HttpInterceptor, var httpReq: HttpReq) : InvocationHandler {
+	internal class HttpInvocation constructor(var any: Any, var httpInterceptor: IHttpInterceptor, var httpReq: HttpReq) : InvocationHandler {
 		override fun invoke(proxy: Any?, method: Method?, args: Array<out Any>?): Any {
 			return if (method?.name == "execute") {
 				val req = httpInterceptor.beforeExecute(httpReq)
