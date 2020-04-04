@@ -8,7 +8,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
-class RetrofitConfig : IHttpHandlerConfig {
+open class RetrofitConfig : IHttpHandlerConfig {
 
 	override fun config() {
 		retrofit = retrofitBuilder.baseUrl("https://www.baidu.com").client(okHttpClientBuilder.build()).build()
@@ -20,7 +20,7 @@ class RetrofitConfig : IHttpHandlerConfig {
 
 	companion object {
 		private const val TIMEOUT = 15L
-		private var okHttpClientBuilder = OkHttpClient.Builder()
+		var okHttpClientBuilder = OkHttpClient.Builder()
 			.sslSocketFactory(SslHelper.getSSLSocketFactory(), SslHelper.getTrustManager())
 			.hostnameVerifier(SslHelper.getHostnameVerifier())
 			.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
@@ -29,7 +29,7 @@ class RetrofitConfig : IHttpHandlerConfig {
 			.connectTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.proxy(Proxy.NO_PROXY)
 
-		internal var retrofitBuilder = Retrofit.Builder()
+		var retrofitBuilder = Retrofit.Builder()
 			.baseUrl("https://www.baidu.com/")
 			.addConverterFactory(ScalarsConverterFactory.create())
 			.client(okHttpClientBuilder.build())

@@ -29,16 +29,14 @@ dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
     api rootProject.ext.dependencies["retrofit"]
     api rootProject.ext.dependencies["logging-interceptor"]
-    implementation rootProject.ext.dependencies["gson"]
     implementation rootProject.ext.dependencies["converter-scalars"]
-    implementation rootProject.ext.dependencies["kotlinx-coroutines-android"]
 }
 
 publish {
     userOrg = 'niekai'
     groupId = 'com.nick.common'
     artifactId = 'easyhttp'
-    publishVersion = '1.0.9'
+    publishVersion = '1.1.0'
     desc = 'this is a lib created with kotlin/retrofit which can be used to call http request'
     website = 'https://github.com/nickyoungzzz/EasyHttp'
 }
