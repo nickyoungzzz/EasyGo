@@ -17,7 +17,7 @@
 7、文件下载使用okio来进行文件读写，可以自定义其他框架来读写文件；
 ### 一、添加依赖 
 ```
-implementation 'com.nick.common:easyhttp:1.0.9'
+implementation 'com.nick.common:easyhttp:1.1.0'
 ```
 ### 二、开始使用
 #### 1、普通请求
