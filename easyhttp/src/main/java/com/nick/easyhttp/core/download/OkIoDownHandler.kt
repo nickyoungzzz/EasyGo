@@ -28,7 +28,7 @@ class OkIoDownHandler : IDownloadHandler {
 					finished = total == current
 					canceled = isCanceled
 				})
-				return if (downloadState.finished || isCanceled) {
+				return if (isCanceled || byteCount == 0L) {
 					sink.close()
 					inputStream.close()
 					0
