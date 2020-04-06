@@ -5,7 +5,7 @@ import com.nick.easyhttp.core.download.DownloadState
 import com.nick.easyhttp.core.download.IDownloadHandler
 import com.nick.easyhttp.core.download.OkIoDownHandler
 import com.nick.easyhttp.core.req.IHttpHandler
-import com.nick.easyhttp.core.req.RetrofitHttpHandler
+import com.nick.easyhttp.core.req.OkhttpHandler
 import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
@@ -34,7 +34,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private var asDownload = false
 
-	private var httpHandler: IHttpHandler = RetrofitHttpHandler()
+	private var httpHandler: IHttpHandler = OkhttpHandler()
 
 	private var downloadHandler: IDownloadHandler = OkIoDownHandler()
 
@@ -146,7 +146,12 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	}
 
 	@JvmOverloads
-	fun execute(exc: (e: Exception) -> Unit = {}, download: (downloadState: DownloadState) -> Unit): HttpRequest {
+	fun executeAsString(transform: (data: String) -> String = { d -> d }): HttpResult<String> {
+		return request { data -> transform(data) }
+	}
+
+	@JvmOverloads
+	fun execute(exc: (e: Exception) -> Unit = {}, download: (downloadState: DownloadState) -> Unit = {}): HttpRequest {
 		val source = downloadParam.source
 		val range = if (downloadParam.breakPoint && source.exists()) source.length() else 0
 		val httpResp = httpHandler.execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })

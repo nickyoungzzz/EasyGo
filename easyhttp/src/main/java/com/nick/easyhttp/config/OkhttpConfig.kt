@@ -6,7 +6,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
-open class RetrofitConfig : IHttpHandlerConfig {
+open class OkhttpConfig : IHttpHandlerConfig {
 
 	override fun config() {
 		okHttpClient = okHttpClientBuilder.build()
