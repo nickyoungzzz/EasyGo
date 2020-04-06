@@ -1,43 +1,23 @@
 apply plugin: 'com.novoda.bintray-release'
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-android'
-
-android {
-    compileSdkVersion rootProject.ext.android.compileSdkVersion
-    buildToolsVersion rootProject.ext.android.buildToolsVersion
-    defaultConfig {
-        minSdkVersion rootProject.ext.android.minSdkVersion
-        targetSdkVersion rootProject.ext.android.targetSdkVersion
-        versionCode rootProject.ext.android.versionCode
-        versionName rootProject.ext.android.versionName
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-}
+apply plugin: 'java-library'
+apply plugin: 'kotlin'
 
 dependencies {
-    api fileTree(include: ['*.jar'], dir: 'libs')
-    api rootProject.ext.dependencies["retrofit"]
-    api rootProject.ext.dependencies["logging-interceptor"]
-    implementation rootProject.ext.dependencies["converter-scalars"]
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api 'com.squareup.okhttp3:okhttp:4.4.1'
+    api 'com.squareup.okio:okio:2.4.3'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.4.1'
 }
+
+sourceCompatibility = "8"
+targetCompatibility = "8"
 
 publish {
     userOrg = 'niekai'
     groupId = 'com.nick.common'
     artifactId = 'easyhttp'
-    publishVersion = '1.1.0'
-    desc = 'this is a lib created with kotlin/retrofit which can be used to call http request'
+    publishVersion = '1.1.1'
+    desc = 'this is a lib created with kotlin/okhttp which can be used to call http request'
     website = 'https://github.com/nickyoungzzz/EasyHttp'
 }
-

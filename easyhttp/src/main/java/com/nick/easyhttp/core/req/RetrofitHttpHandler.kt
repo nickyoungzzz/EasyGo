@@ -1,39 +1,38 @@
 package com.nick.easyhttp.core.req
 
 import com.nick.easyhttp.config.RetrofitConfig
-import com.nick.easyhttp.enums.HttpProtocol
 import com.nick.easyhttp.enums.ReqMethod
-import com.nick.easyhttp.internal.HttpService
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
+import okhttp3.Call
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.ResponseBody
-import retrofit2.Call
 import java.io.File
 import java.io.IOException
 
 class RetrofitHttpHandler : IHttpHandler {
 
-	private var call: Call<ResponseBody>? = null
+	private var call: Call? = null
 
-	private val retrofit by lazy {
-		RetrofitConfig.retrofit
+	private val okHttpClient by lazy {
+		RetrofitConfig.okHttpClient
 			?: throw RuntimeException("please config EasyHttp first!!!")
 	}
 
 	override fun execute(httpReq: HttpReq): HttpResp {
+		call = okHttpClient.newCall(request(reqConfig(httpReq)))
 		val httpRespBuilder = HttpResp.Builder()
 		try {
-			val response = call(reqConfig(httpReq)).execute()
-			val responseBody = response.body()
-			val resp = if (response.isSuccessful && !httpReq.asDownload) responseBody?.string() else response.errorBody()?.string()
-			httpRespBuilder.isSuccessful(response.isSuccessful)
-				.code(response.code())
-				.headers(response.headers().toList())
+			val response = call?.execute()
+			val responseBody = response?.body
+			val resp = if (!httpReq.asDownload) responseBody?.string() else ""
+			httpRespBuilder.isSuccessful(response?.isSuccessful!!)
+				.code(response.code)
+				.headers(response.headers.toMutableList())
 				.contentLength(responseBody?.contentLength()!!)
 				.byteData(responseBody.byteStream())
 				.resp(resp)
@@ -51,46 +50,42 @@ class RetrofitHttpHandler : IHttpHandler {
 	}
 
 	override fun cancel() {
-		if (call?.isExecuted!! && !call?.isCanceled!!) {
+		if (call?.isExecuted()!! && !call?.isCanceled()!!) {
 			call?.cancel()
 		}
 	}
 
-	private fun call(httpReq: HttpReq): Call<ResponseBody> {
-		val reqUrl = httpReq.url
-		val reqMethod = httpReq.reqMethod
-		val reqTag = httpReq.reqTag
-		val queryMap = httpReq.queryMap
-		val fieldMap = httpReq.fieldMap
-		val headerMap = httpReq.headerMap
-		val multipartBody = httpReq.multipartBody
-		val isMultiPart = httpReq.isMultiPart
-		val jsonString = httpReq.jsonString
-		val realHttpUrl = reqUrl.startsWith(HttpProtocol.HTTP.schema, true) or reqUrl.startsWith(HttpProtocol.HTTPS.schema, true)
-		val url = if (realHttpUrl) reqUrl else retrofit.baseUrl().toString().plus(reqUrl)
-		val httpService = retrofit.create(HttpService::class.java)
-		val requestBody = jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())
-		call = when (reqMethod) {
-			ReqMethod.GET ->
-				if (httpReq.asDownload) httpService.getDownload(url, headerMap, queryMap, reqTag)
-				else httpService.get(url, headerMap, queryMap, reqTag)
-			ReqMethod.POST ->
-				if (httpReq.asDownload) httpService.postDownload(url, headerMap, queryMap, requestBody, reqTag)
-				else httpService.post(url, headerMap, queryMap, requestBody, reqTag)
-			ReqMethod.GET_FORM -> httpService.getForm(url, headerMap, queryMap, fieldMap, reqTag)
-			ReqMethod.POST_FORM -> httpService.post(url, headerMap, queryMap,
-				if (isMultiPart) constructMultiPartBody(multipartBody) else constructFormBody(fieldMap), reqTag)
-			ReqMethod.PUT -> httpService.put(url, headerMap, queryMap, requestBody, reqTag)
-			ReqMethod.DELETE -> httpService.delete(url, headerMap, queryMap, requestBody, reqTag)
-			ReqMethod.PUT_FORM -> httpService.put(url, headerMap, queryMap,
-				if (isMultiPart) constructMultiPartBody(multipartBody) else constructFormBody(fieldMap), reqTag)
-			ReqMethod.DELETE_FORM -> httpService.delete(url, headerMap, queryMap,
-				if (isMultiPart) constructMultiPartBody(multipartBody) else constructFormBody(fieldMap), reqTag)
-		}
-		return call as Call<ResponseBody>
+	private fun request(httpReq: HttpReq): Request {
+		val jsonBody = httpReq.jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())
+		val body = if (httpReq.isMultiPart) multiPart(httpReq.multipartBody) else form(httpReq.fieldMap)
+		return Request.Builder().tag(httpReq.reqTag).apply {
+			when (httpReq.reqMethod) {
+				ReqMethod.POST -> post(jsonBody)
+				ReqMethod.GET_FORM, ReqMethod.GET -> {
+					httpReq.fieldMap.forEach { (key, value) ->
+						httpReq.headerMap[key] = value
+					}
+					get()
+				}
+				ReqMethod.POST_FORM -> post(body)
+				ReqMethod.PUT -> put(jsonBody)
+				ReqMethod.DELETE -> delete(jsonBody)
+				ReqMethod.PUT_FORM -> put(body)
+				ReqMethod.DELETE_FORM -> delete(body)
+			}.apply {
+				httpReq.headerMap.forEach { (key, value) -> addHeader(key, value) }
+				val regex = if (httpReq.url.contains("?")) "&" else "?"
+				val stringBuilder = StringBuilder(if (httpReq.queryMap.isNotEmpty()) regex else "")
+				httpReq.queryMap.forEach { (key, value) ->
+					stringBuilder.append("$key=$value&")
+				}
+				url("${httpReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
+			}
+		}.build()
 	}
 
-	private fun constructFormBody(fieldMap: HashMap<String, String>): FormBody {
+	// 获取表单请求的RequestBody
+	private fun form(fieldMap: HashMap<String, String>): FormBody {
 		val formBodyBuilder = FormBody.Builder()
 		if (!fieldMap.isNullOrEmpty()) {
 			fieldMap.forEach {
@@ -100,7 +95,8 @@ class RetrofitHttpHandler : IHttpHandler {
 		return formBodyBuilder.build()
 	}
 
-	private fun constructMultiPartBody(multipartBodyMap: HashMap<String, Any>): MultipartBody {
+	// 获取多请求体的RequestBody
+	private fun multiPart(multipartBodyMap: HashMap<String, Any>): MultipartBody {
 		val multipartBody = MultipartBody.Builder().setType(MultipartBody.FORM)
 		multipartBodyMap.forEach {
 			if (it.value is String) {
@@ -111,5 +107,14 @@ class RetrofitHttpHandler : IHttpHandler {
 			}
 		}
 		return multipartBody.build()
+	}
+
+	// 获取查询的header
+	private fun queryHeader(queryHeader: HashMap<String, String>): String {
+		val stringBuilder = StringBuilder()
+		queryHeader.forEach { (key, value) ->
+			stringBuilder.append("$key=$value")
+		}
+		return stringBuilder.toString()
 	}
 }

@@ -3,19 +3,17 @@ package com.nick.easyhttp.config
 import com.nick.easyhttp.util.SslHelper
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
 open class RetrofitConfig : IHttpHandlerConfig {
 
 	override fun config() {
-		retrofit = retrofitBuilder.baseUrl("https://www.baidu.com").client(okHttpClientBuilder.build()).build()
+		okHttpClient = okHttpClientBuilder.build()
 	}
 
 	override fun needConfig(): Boolean {
-		return retrofit == null
+		return okHttpClient == null
 	}
 
 	companion object {
@@ -28,12 +26,6 @@ open class RetrofitConfig : IHttpHandlerConfig {
 			.readTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.connectTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.proxy(Proxy.NO_PROXY)
-
-		var retrofitBuilder = Retrofit.Builder()
-			.baseUrl("https://www.baidu.com/")
-			.addConverterFactory(ScalarsConverterFactory.create())
-			.client(okHttpClientBuilder.build())
-
-		var retrofit: Retrofit? = null
+		var okHttpClient: OkHttpClient? = null
 	}
 }

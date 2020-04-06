@@ -9,7 +9,6 @@ import javax.net.ssl.X509TrustManager
 
 class SslHelper {
 	companion object {
-
 		//获取这个SSLSocketFactory
 		fun getSSLSocketFactory(): SSLSocketFactory {
 			try {
