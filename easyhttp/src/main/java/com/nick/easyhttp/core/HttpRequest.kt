@@ -5,7 +5,7 @@ import com.nick.easyhttp.core.download.DownloadState
 import com.nick.easyhttp.core.download.IDownloadHandler
 import com.nick.easyhttp.core.download.OkIoDownHandler
 import com.nick.easyhttp.core.req.IHttpHandler
-import com.nick.easyhttp.core.req.OkhttpHandler
+import com.nick.easyhttp.core.req.OkHttpHandler
 import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
@@ -34,7 +34,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private var asDownload = false
 
-	private var httpHandler: IHttpHandler = OkhttpHandler()
+	private var httpHandler: IHttpHandler = OkHttpHandler()
 
 	private var downloadHandler: IDownloadHandler = OkIoDownHandler()
 

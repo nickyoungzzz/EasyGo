@@ -1,6 +1,6 @@
 package com.nick.easyhttp.core.req
 
-import com.nick.easyhttp.config.OkhttpConfig
+import com.nick.easyhttp.config.OkHttpConfig
 import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
@@ -14,12 +14,12 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.IOException
 
-class OkhttpHandler : IHttpHandler {
+class OkHttpHandler : IHttpHandler {
 
 	private var call: Call? = null
 
 	private val okHttpClient by lazy {
-		OkhttpConfig.okHttpClient
+		OkHttpConfig.okHttpClient
 			?: throw RuntimeException("please config EasyHttp first!!!")
 	}
 
