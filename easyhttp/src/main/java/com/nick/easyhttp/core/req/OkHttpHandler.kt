@@ -4,11 +4,8 @@ import com.nick.easyhttp.config.OkHttpConfig
 import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
-import okhttp3.Call
-import okhttp3.FormBody
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
@@ -27,13 +24,13 @@ class OkHttpHandler : IHttpHandler {
 		call = okHttpClient.newCall(request(reqConfig(httpReq)))
 		val httpRespBuilder = HttpResp.Builder()
 		try {
-			val response = call?.execute()
-			val responseBody = response?.body
-			val resp = if (!httpReq.asDownload) responseBody?.string() else ""
-			httpRespBuilder.isSuccessful(response?.isSuccessful!!)
+			val response = call!!.execute()
+			val responseBody = response.body as ResponseBody
+			val resp = if (!httpReq.asDownload) responseBody.string() else ""
+			httpRespBuilder.isSuccessful(response.isSuccessful)
 				.code(response.code)
 				.headers(response.headers.toMutableList())
-				.contentLength(responseBody?.contentLength()!!)
+				.contentLength(responseBody.contentLength())
 				.byteData(responseBody.byteStream())
 				.resp(resp)
 		} catch (e: IOException) {
@@ -43,10 +40,7 @@ class OkHttpHandler : IHttpHandler {
 	}
 
 	override fun reqConfig(httpReq: HttpReq): HttpReq {
-		return httpReq.apply {
-			headerMap["hello"] = "world"
-			headerMap.remove("name")
-		}
+		return httpReq
 	}
 
 	override fun cancel() {
@@ -72,6 +66,9 @@ class OkHttpHandler : IHttpHandler {
 				ReqMethod.DELETE -> delete(jsonBody)
 				ReqMethod.PUT_FORM -> put(body)
 				ReqMethod.DELETE_FORM -> delete(body)
+				ReqMethod.PATCH -> patch(jsonBody)
+				ReqMethod.PATCH_FORM -> patch(body)
+				ReqMethod.HEAD -> head()
 			}.apply {
 				httpReq.headerMap.forEach { (key, value) -> addHeader(key, value) }
 				val regex = if (httpReq.url.contains("?")) "&" else "?"
@@ -107,14 +104,5 @@ class OkHttpHandler : IHttpHandler {
 			}
 		}
 		return multipartBody.build()
-	}
-
-	// 获取查询的header
-	private fun queryHeader(queryHeader: HashMap<String, String>): String {
-		val stringBuilder = StringBuilder()
-		queryHeader.forEach { (key, value) ->
-			stringBuilder.append("$key=$value")
-		}
-		return stringBuilder.toString()
 	}
 }

@@ -21,6 +21,12 @@ fun String.delete() = HttpRequest(this, ReqMethod.DELETE)
 
 fun String.deleteForm() = HttpRequest(this, ReqMethod.DELETE_FORM)
 
+fun String.patch() = HttpRequest(this, ReqMethod.PATCH)
+
+fun String.patchForm() = HttpRequest(this, ReqMethod.PATCH_FORM)
+
+fun String.head() = HttpRequest(this, ReqMethod.HEAD)
+
 @Volatile private var hasConfig = false
 
 private val httpConfigList = arrayListOf<IHttpHandlerConfig>()
