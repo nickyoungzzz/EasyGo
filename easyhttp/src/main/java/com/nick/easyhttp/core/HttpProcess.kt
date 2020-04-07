@@ -31,15 +31,11 @@ fun String.head() = HttpRequest(this, ReqMethod.HEAD)
 
 private val httpConfigList = arrayListOf<IHttpHandlerConfig>()
 
-@Synchronized fun configEasyHttp(httpConfig: HttpConfig) {
+@Synchronized fun configEasyHttp(httpConfig: (httpConfigs: MutableList<IHttpHandlerConfig>) -> Unit) {
 	if (hasConfig) {
 		throw RuntimeException("Do not config again")
 	}
-	httpConfig.onHttpConfig(httpConfigList)
+	httpConfig(httpConfigList)
 	httpConfigList.filter { it.needConfig() }.forEach { it.config() }
 	hasConfig = true
-}
-
-interface HttpConfig {
-	fun onHttpConfig(httpConfigs: MutableList<IHttpHandlerConfig>)
 }
