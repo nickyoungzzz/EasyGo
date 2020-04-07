@@ -176,11 +176,13 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		}
 	}
 
-	internal class HttpInvocation constructor(var any: Any, var httpInterceptor: IHttpInterceptor, var httpReq: HttpReq) : InvocationHandler {
+	internal class HttpInvocation internal constructor(private val any: Any, private val httpInterceptor: IHttpInterceptor,
+	                                                   private val httpReq: HttpReq
+	) : InvocationHandler {
 		override fun invoke(proxy: Any?, method: Method?, args: Array<out Any>?): Any {
 			return if (method?.name == "execute") {
 				val req = httpInterceptor.beforeExecute(httpReq)
-				val obj = method.invoke(any, req)
+				val obj = (method as Method).invoke(any, req)
 				httpInterceptor.afterExecute(req, obj as HttpResp)
 			} else {
 				method!!.invoke(any, args)
