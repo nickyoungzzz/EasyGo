@@ -1,8 +1,8 @@
 package com.nick.easyhttp.result
 
-import com.nick.easyhttp.enums.ResponseStatus
+import com.nick.easyhttp.core.ResponseStatus
 
-class HttpResult<T> constructor(val status: ResponseStatus) {
+class HttpResult<T> constructor(private val status: ResponseStatus) {
 
 	var code: Int = 0
 		private set
@@ -31,7 +31,11 @@ class HttpResult<T> constructor(val status: ResponseStatus) {
 		this.throwable = throwable
 	}
 
-	fun isThrowable() = throwable != null
+	fun isSuccess() = status == ResponseStatus.SUCCESS
+
+	fun isError() = status == ResponseStatus.ERROR
+
+	fun isThrowable() = status == ResponseStatus.THROWABLE
 
 	companion object {
 
@@ -44,7 +48,7 @@ class HttpResult<T> constructor(val status: ResponseStatus) {
 		}
 
 		fun <T> throwable(throwable: Throwable?): HttpResult<T> {
-			return HttpResult(ResponseStatus.ERROR, throwable)
+			return HttpResult(ResponseStatus.THROWABLE, throwable)
 		}
 	}
 

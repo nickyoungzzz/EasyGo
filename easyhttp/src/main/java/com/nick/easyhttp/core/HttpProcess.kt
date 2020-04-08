@@ -3,7 +3,6 @@
 package com.nick.easyhttp.core
 
 import com.nick.easyhttp.config.IHttpHandlerConfig
-import com.nick.easyhttp.enums.ReqMethod
 
 fun String.get() = HttpRequest(this, ReqMethod.GET)
 
@@ -38,4 +37,11 @@ private val httpConfigList = arrayListOf<IHttpHandlerConfig>()
 	httpConfig(httpConfigList)
 	httpConfigList.filter { it.needConfig() }.forEach { it.config() }
 	hasConfig = true
+}
+
+enum class ReqMethod {
+	GET, POST, PUT, DELETE, PATCH, GET_FORM, POST_FORM, PUT_FORM, DELETE_FORM, PATCH_FORM, HEAD
+}
+enum class ResponseStatus {
+	SUCCESS, ERROR, THROWABLE
 }

@@ -6,7 +6,6 @@ import com.nick.easyhttp.core.download.IDownloadHandler
 import com.nick.easyhttp.core.download.OkIoDownHandler
 import com.nick.easyhttp.core.req.IHttpHandler
 import com.nick.easyhttp.core.req.OkHttpHandler
-import com.nick.easyhttp.enums.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.result.HttpResult
