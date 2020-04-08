@@ -26,18 +26,22 @@ class UrlConnectionHttpHandler : IHttpHandler {
 		httpReq.queryMap.forEach { (key, value) ->
 			stringBuilder.append("$key=$value&")
 		}
-		val url = URL("${httpReq.url}${stringBuilder.toString().substringBeforeLast("&").toByteArray()}")
+		val url = URL("${httpReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
+		stringBuilder.clear()
 		val httpURLConnection = url.openConnection() as HttpURLConnection
 		httpURLConnection.requestMethod = httpReq.reqMethod.method
 		httpURLConnection.doOutput = true
-		val outputStream = httpURLConnection.outputStream
-		httpURLConnection.disconnect()
-		stringBuilder.clear()
 		when (httpReq.reqMethod) {
 			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> {
 			}
-			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> outputStream.write(httpReq.jsonString.toByteArray())
+			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> {
+				val outputStream = httpURLConnection.outputStream
+				outputStream.write(httpReq.jsonString.toByteArray())
+				outputStream.flush()
+				outputStream.close()
+			}
 			ReqMethod.POST_FORM -> {
+				val outputStream = httpURLConnection.outputStream
 				if (httpReq.isMultiPart) {
 					val end = "/r/n"
 					val twoHyphens = "--"
@@ -48,7 +52,7 @@ class UrlConnectionHttpHandler : IHttpHandler {
 						dataOutputStream.writeBytes("$end$twoHyphens$boundary")
 						dataOutputStream.writeBytes("Content-Disposition: form-data; $key:${value.run {
 							if (this is File) run {
-								outputStream.sink().buffer().writeAll(FileInputStream(this).source())
+								outputStream.sink().buffer().writeAll(FileInputStream(this as File).source())
 								this.absolutePath
 							} else this
 						}
@@ -62,14 +66,14 @@ class UrlConnectionHttpHandler : IHttpHandler {
 						stringBuilder.append("$key=$value&")
 					}
 					outputStream.write(stringBuilder.toString().substringBeforeLast("&").toByteArray())
+					outputStream.flush()
+					outputStream.close()
 				}
 			}
 			ReqMethod.PUT_FORM, ReqMethod.DELETE_FORM, ReqMethod.PATCH_FORM -> {
 				throw RuntimeException("put, delete, patch method do not have multipart body or form body")
 			}
 		}
-		outputStream.flush()
-		outputStream.close()
 		httpURLConnection.connect()
 		val success = httpURLConnection.responseCode in 200..299
 		val inputStream = if (success) httpURLConnection.inputStream else httpURLConnection.errorStream
