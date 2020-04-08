@@ -30,7 +30,7 @@ fun String.head() = HttpRequest(this, ReqMethod.HEAD)
 
 private val httpConfigList = arrayListOf<IHttpHandlerConfig>()
 
-@Synchronized fun configEasyHttp(httpConfig: (httpConfigs: MutableList<IHttpHandlerConfig>) -> Unit) {
+@Synchronized fun configEasyHttp(httpConfig: (configList: MutableList<IHttpHandlerConfig>) -> Unit) {
 	if (hasConfig) {
 		throw RuntimeException("Do not config again")
 	}
@@ -39,9 +39,12 @@ private val httpConfigList = arrayListOf<IHttpHandlerConfig>()
 	hasConfig = true
 }
 
-enum class ReqMethod {
-	GET, POST, PUT, DELETE, PATCH, GET_FORM, POST_FORM, PUT_FORM, DELETE_FORM, PATCH_FORM, HEAD
+enum class ReqMethod constructor(var method: String, var form: Boolean) {
+	GET("GET", false), POST("POST", false), PUT("PUT", false), DELETE("DELETE", false),
+	PATCH("PATCH", false), HEAD("HEAD", false), GET_FORM("GET", true), POST_FORM("POST", true),
+	PUT_FORM("PUT", true), DELETE_FORM("DELETE", true), PATCH_FORM("PATCH", true)
 }
+
 enum class ResponseStatus {
 	SUCCESS, ERROR, THROWABLE
 }

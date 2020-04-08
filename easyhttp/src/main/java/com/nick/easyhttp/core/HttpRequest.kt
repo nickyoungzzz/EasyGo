@@ -29,7 +29,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private var isMultiPart = false
 
-	private var jsonString = "{}"
+	private var jsonString = ""
 
 	private var asDownload = false
 

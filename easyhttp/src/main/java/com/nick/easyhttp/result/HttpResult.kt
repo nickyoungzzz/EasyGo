@@ -6,7 +6,7 @@ class HttpResult<T> constructor(private val status: ResponseStatus) {
 
 	var code: Int = 0
 		private set
-	var headers: List<Pair<String, String>>? = null
+	var headers: Map<String, List<String>>? = null
 		private set
 	var success: T? = null
 		private set
@@ -15,13 +15,13 @@ class HttpResult<T> constructor(private val status: ResponseStatus) {
 	var throwable: Throwable? = null
 		private set
 
-	constructor(status: ResponseStatus, t: T, code: Int, headers: List<Pair<String, String>>) : this(status) {
+	constructor(status: ResponseStatus, t: T, code: Int, headers: Map<String, List<String>>) : this(status) {
 		this.success = t
 		this.code = code
 		this.headers = headers
 	}
 
-	constructor(status: ResponseStatus, code: Int, f: String, headers: List<Pair<String, String>>) : this(status) {
+	constructor(status: ResponseStatus, code: Int, f: String, headers: Map<String, List<String>>) : this(status) {
 		this.error = f
 		this.code = code
 		this.headers = headers
@@ -39,11 +39,11 @@ class HttpResult<T> constructor(private val status: ResponseStatus) {
 
 	companion object {
 
-		fun <T> success(t: T, code: Int, headers: List<Pair<String, String>>): HttpResult<T> {
+		fun <T> success(t: T, code: Int, headers: Map<String, List<String>>): HttpResult<T> {
 			return HttpResult(ResponseStatus.SUCCESS, t, code, headers)
 		}
 
-		fun <T> error(f: String, code: Int, headers: List<Pair<String, String>>): HttpResult<T> {
+		fun <T> error(f: String, code: Int, headers: Map<String, List<String>>): HttpResult<T> {
 			return HttpResult(ResponseStatus.ERROR, code, f, headers)
 		}
 

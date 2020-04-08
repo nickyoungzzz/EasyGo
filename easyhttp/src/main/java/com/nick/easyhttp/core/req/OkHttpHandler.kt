@@ -1,7 +1,7 @@
 package com.nick.easyhttp.core.req
 
 import com.nick.easyhttp.config.OkHttpConfig
-import com.nick.easyhttp.enums.ReqMethod
+import com.nick.easyhttp.core.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import okhttp3.*
@@ -29,7 +29,7 @@ class OkHttpHandler : IHttpHandler {
 			val resp = if (!httpReq.asDownload) responseBody.string() else ""
 			httpRespBuilder.isSuccessful(response.isSuccessful)
 				.code(response.code)
-				.headers(response.headers.toMutableList())
+				.headers(response.headers.toMultimap())
 				.contentLength(responseBody.contentLength())
 				.byteData(responseBody.byteStream())
 				.resp(resp)
@@ -57,7 +57,7 @@ class OkHttpHandler : IHttpHandler {
 				ReqMethod.POST -> post(jsonBody)
 				ReqMethod.GET_FORM, ReqMethod.GET -> {
 					httpReq.fieldMap.forEach { (key, value) ->
-						httpReq.headerMap[key] = value
+						httpReq.queryMap[key] = value
 					}
 					get()
 				}

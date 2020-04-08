@@ -1,6 +1,6 @@
 package com.nick.easyhttp.result
 
-import com.nick.easyhttp.enums.ReqMethod
+import com.nick.easyhttp.core.ReqMethod
 
 class HttpReq internal constructor(builder: Builder) {
 
@@ -27,7 +27,7 @@ class HttpReq internal constructor(builder: Builder) {
 		internal var fieldMap = hashMapOf<String, String>()
 		internal var multipartBody = hashMapOf<String, Any>()
 		internal var isMultiPart = false
-		internal var jsonString = "{}"
+		internal var jsonString = ""
 		internal var asDownload = false
 
 		internal constructor(httpReq: HttpReq) : this() {
