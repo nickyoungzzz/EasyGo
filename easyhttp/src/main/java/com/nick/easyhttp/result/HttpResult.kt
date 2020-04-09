@@ -1,55 +1,63 @@
 package com.nick.easyhttp.result
 
-import com.nick.easyhttp.core.ResponseStatus
+class HttpResult internal constructor(builder: Builder) {
 
-class HttpResult<T> constructor(private val status: ResponseStatus) {
+	val code: Int = builder.code
+	val headers: Map<String, List<String>> = builder.headers
+	val resp: String = builder.resp
+	var throwable: Throwable? = builder.throwable
+	var httpStatus: HttpStatus = builder.httpStatus
 
-	var code: Int = 0
-		private set
-	var headers: Map<String, List<String>>? = null
-		private set
-	var success: T? = null
-		private set
-	var error: String? = null
-		private set
-	var throwable: Throwable? = null
-		private set
+	fun newBuilder() = Builder(this)
 
-	constructor(status: ResponseStatus, t: T, code: Int, headers: Map<String, List<String>>) : this(status) {
-		this.success = t
-		this.code = code
-		this.headers = headers
-	}
+	private fun isSuccess() = httpStatus == HttpStatus.SUCCESS
 
-	constructor(status: ResponseStatus, code: Int, f: String, headers: Map<String, List<String>>) : this(status) {
-		this.error = f
-		this.code = code
-		this.headers = headers
-	}
+	private fun isError() = httpStatus == HttpStatus.ERROR
 
-	constructor(status: ResponseStatus, throwable: Throwable?) : this(status) {
-		this.throwable = throwable
-	}
+	private fun isException() = httpStatus == HttpStatus.EXCEPTION
 
-	fun isSuccess() = status == ResponseStatus.SUCCESS
+	class Builder constructor() {
 
-	fun isError() = status == ResponseStatus.ERROR
+		internal var code = 0
+		internal var headers: Map<String, List<String>> = hashMapOf()
+		internal var resp = ""
+		internal var throwable: Throwable? = null
+		internal var httpStatus = HttpStatus.EXCEPTION
 
-	fun isThrowable() = status == ResponseStatus.THROWABLE
-
-	companion object {
-
-		fun <T> success(t: T, code: Int, headers: Map<String, List<String>>): HttpResult<T> {
-			return HttpResult(ResponseStatus.SUCCESS, t, code, headers)
+		internal constructor(httpResult: HttpResult) : this() {
+			this.code = httpResult.code
+			this.headers = httpResult.headers
+			this.resp = httpResult.resp
+			this.throwable = httpResult.throwable
+			this.httpStatus = httpResult.httpStatus
 		}
 
-		fun <T> error(f: String, code: Int, headers: Map<String, List<String>>): HttpResult<T> {
-			return HttpResult(ResponseStatus.ERROR, code, f, headers)
-		}
+		fun code(code: Int) = apply { this.code = code }
 
-		fun <T> throwable(throwable: Throwable?): HttpResult<T> {
-			return HttpResult(ResponseStatus.THROWABLE, throwable)
-		}
+		fun headers(headers: Map<String, List<String>>) = apply { this.headers = headers }
+
+		fun resp(resp: String) = apply { this.resp = resp }
+
+		fun throwable(throwable: Throwable?) = apply { this.throwable = throwable }
+
+		fun status(httpStatus: HttpStatus) = apply { this.httpStatus = httpStatus }
+
+		fun build(): HttpResult = HttpResult(this)
 	}
 
+	fun success(block: (string: String) -> Unit) = apply { if (isSuccess()) block(resp) }
+
+	fun error(block: (string: String) -> Unit) = apply { if (isError()) block(resp) }
+
+	fun exception(block: (e: Throwable) -> Unit) = apply { if (isException()) block(throwable!!) }
+
+	fun <T> getSuccess(t: (string: String) -> T?): T? = if (isSuccess()) t(resp) else null
+
+	fun <F> getError(t: (string: String) -> F?): F? = if (isError()) t(resp) else null
+
+	fun getException(t: (exception: Throwable?) -> Throwable): Throwable? = if (isException()) t(throwable!!) else null
+
+	enum class HttpStatus {
+		SUCCESS, ERROR, EXCEPTION
+	}
 }

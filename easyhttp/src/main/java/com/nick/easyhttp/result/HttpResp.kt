@@ -4,10 +4,10 @@ import java.io.InputStream
 
 class HttpResp internal constructor(builder: Builder) {
 
-	val resp: String? = builder.resp
+	val resp: String = builder.resp
 	val code: Int = builder.code
 	val isSuccessful: Boolean = builder.isSuccessful
-	val headers: Map<String, List<String>>? = builder.headers
+	val headers: Map<String, List<String>> = builder.headers
 	val exception = builder.exception
 	val contentLength = builder.contentLength
 	val inputStream: InputStream? = builder.inputStream
@@ -16,11 +16,11 @@ class HttpResp internal constructor(builder: Builder) {
 
 	class Builder constructor() {
 
-		internal var resp: String? = null
+		internal var resp: String = ""
 		internal var code: Int = 0
 		internal var isSuccessful = true
-		internal var headers: Map<String, List<String>>? = null
-		internal var exception: Exception? = null
+		internal var headers: Map<String, List<String>> = hashMapOf()
+		internal var exception: Throwable? = null
 		internal var contentLength: Long = 0
 		internal var inputStream: InputStream? = null
 
@@ -34,7 +34,7 @@ class HttpResp internal constructor(builder: Builder) {
 			this.inputStream = httpResp.inputStream
 		}
 
-		fun resp(resp: String?) = apply {
+		fun resp(resp: String) = apply {
 			this.resp = resp
 		}
 

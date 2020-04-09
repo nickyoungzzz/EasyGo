@@ -9,6 +9,7 @@ import okio.source
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.Charset
@@ -74,20 +75,27 @@ class UrlConnectionHttpHandler : IHttpHandler {
 				throw RuntimeException("put, delete, patch method do not have multipart body or form body")
 			}
 		}
-		httpURLConnection.connect()
-		val success = httpURLConnection.responseCode in 200..299
-		val inputStream = if (success) httpURLConnection.inputStream else httpURLConnection.errorStream
-		val resp = inputStream.readBytes().toString(Charset.defaultCharset())
-		inputStream.close()
-		httpURLConnection.disconnect()
-		return HttpResp.Builder()
-			.code(httpURLConnection.responseCode)
-			.byteData(inputStream)
-			.isSuccessful(success)
-			.headers(httpURLConnection.headerFields)
-			.contentLength(httpURLConnection.contentLength.toLong())
-			.resp(resp)
-			.build()
+		val httpRespBuilder = HttpResp.Builder()
+		try {
+			httpURLConnection.connect()
+			val success = httpURLConnection.responseCode in 200..299
+			val inputStream = if (success) httpURLConnection.inputStream else httpURLConnection.errorStream
+			val resp = if (httpReq.asDownload) "" else inputStream.readBytes().toString(Charset.defaultCharset())
+			httpRespBuilder.code(httpURLConnection.responseCode)
+				.byteData(inputStream)
+				.isSuccessful(success)
+				.headers(httpURLConnection.headerFields)
+				.contentLength(httpURLConnection.contentLength.toLong())
+				.resp(resp)
+			if (!httpReq.asDownload) {
+				inputStream.close()
+			}
+		} catch (e: IOException) {
+			httpRespBuilder.exception(e)
+		} finally {
+			httpURLConnection.disconnect()
+		}
+		return httpRespBuilder.build()
 	}
 
 	override fun reqConfig(httpReq: HttpReq): HttpReq {

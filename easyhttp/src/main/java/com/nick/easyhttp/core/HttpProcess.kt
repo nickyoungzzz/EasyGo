@@ -44,7 +44,3 @@ enum class ReqMethod constructor(var method: String, var form: Boolean) {
 	PATCH("PATCH", false), HEAD("HEAD", false), GET_FORM("GET", true), POST_FORM("POST", true),
 	PUT_FORM("PUT", true), DELETE_FORM("DELETE", true), PATCH_FORM("PATCH", true)
 }
-
-enum class ResponseStatus {
-	SUCCESS, ERROR, THROWABLE
-}

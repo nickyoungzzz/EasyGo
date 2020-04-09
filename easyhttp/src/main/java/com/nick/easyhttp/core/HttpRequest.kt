@@ -109,9 +109,14 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		this.httpHandler = httpHandler
 	}
 
-	fun setHttpInterceptor(httpHandlerInterceptor: IHttpInterceptor) = apply {
+	private var beforeExecute = fun(httpReq: HttpReq): HttpReq = httpReq
+
+	private var afterExecute = fun(_: HttpReq, httpResp: HttpResp) = httpResp
+
+	@JvmOverloads
+	fun intercept(before: (httpReq: HttpReq) -> HttpReq = beforeExecute, after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp = afterExecute) = apply {
 		this.httpHandler = Proxy.newProxyInstance(httpHandler.javaClass.classLoader, httpHandler.javaClass.interfaces,
-			HttpInvocation(httpHandler, httpHandlerInterceptor, httpReq())) as IHttpHandler
+			HttpInvocation(httpHandler, before, after, httpReq())) as IHttpHandler
 	}
 
 	fun setDownloadHandler(downloadHandler: IDownloadHandler) = apply {
@@ -125,32 +130,20 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 			.build()
 	}
 
-	private fun <T> request(transform: (data: String) -> T): HttpResult<T> {
-		return run {
-			val httpResp = httpHandler.execute(httpReq())
-			if (httpResp.isSuccessful) {
-				HttpResult.success(transform(httpResp.resp!!), httpResp.code, httpResp.headers!!)
-			} else {
-				if (httpResp.exception != null) {
-					HttpResult.throwable(httpResp.exception)
-				} else {
-					HttpResult.error(httpResp.resp!!, httpResp.code, httpResp.headers!!)
-				}
-			}
-		}
-	}
-
-	fun <T> execute(transform: (data: String) -> T): HttpResult<T> {
-		return request { data -> transform(data) }
+	fun request(): HttpResult {
+		val httpResp = httpHandler.execute(httpReq())
+		val status = if (httpResp.exception != null) HttpResult.HttpStatus.EXCEPTION
+		else (if (httpResp.isSuccessful) HttpResult.HttpStatus.SUCCESS else HttpResult.HttpStatus.ERROR)
+		return HttpResult.Builder().code(httpResp.code)
+			.headers(httpResp.headers)
+			.resp(httpResp.resp)
+			.throwable(httpResp.exception)
+			.status(status)
+			.build()
 	}
 
 	@JvmOverloads
-	fun executeAsString(transform: (data: String) -> String = { d -> d }): HttpResult<String> {
-		return request { data -> transform(data) }
-	}
-
-	@JvmOverloads
-	fun execute(exc: (e: Exception) -> Unit = {}, download: (downloadState: DownloadState) -> Unit = {}): HttpRequest {
+	fun execute(exc: (e: Throwable) -> Unit = {}, download: (downloadState: DownloadState) -> Unit = {}): HttpRequest {
 		val source = downloadParam.source
 		val range = if (downloadParam.breakPoint && source.exists()) source.length() else 0
 		val httpResp = httpHandler.execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })
@@ -175,14 +168,15 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		}
 	}
 
-	internal class HttpInvocation internal constructor(private val any: Any, private val httpInterceptor: IHttpInterceptor,
+	internal class HttpInvocation internal constructor(private val any: Any, private val before: (httpReq: HttpReq) -> HttpReq,
+	                                                   private val after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp,
 	                                                   private val httpReq: HttpReq
 	) : InvocationHandler {
 		override fun invoke(proxy: Any?, method: Method?, args: Array<out Any>?): Any {
 			return if (method?.name == "execute") {
-				val req = httpInterceptor.beforeExecute(httpReq)
+				val req = before(httpReq)
 				val obj = (method as Method).invoke(any, req)
-				httpInterceptor.afterExecute(req, obj as HttpResp)
+				after(req, obj as HttpResp)
 			} else {
 				method!!.invoke(any, args)
 			}
