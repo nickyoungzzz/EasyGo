@@ -2,7 +2,6 @@ package com.nick.easyhttp.config
 
 import com.nick.easyhttp.util.SslHelper
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
@@ -21,7 +20,6 @@ open class OkHttpConfig : IHttpHandlerConfig {
 		var okHttpClientBuilder = OkHttpClient.Builder()
 			.sslSocketFactory(SslHelper.getSSLSocketFactory(), SslHelper.getTrustManager())
 			.hostnameVerifier(SslHelper.getHostnameVerifier())
-			.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
 			.writeTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.readTimeout(TIMEOUT, TimeUnit.SECONDS)
 			.connectTimeout(TIMEOUT, TimeUnit.SECONDS)
