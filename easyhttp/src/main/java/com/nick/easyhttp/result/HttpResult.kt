@@ -49,13 +49,19 @@ class HttpResult internal constructor(builder: Builder) {
 
 	fun error(block: (string: String) -> Unit) = apply { if (isError()) block(resp) }
 
-	fun exception(block: (e: Throwable) -> Unit) = apply { if (isException()) block(throwable!!) }
+	fun exception(block: (e: Throwable?) -> Unit) = apply { if (isException()) block(throwable) }
 
 	fun <T> getSuccess(t: (string: String) -> T?): T? = if (isSuccess()) t(resp) else null
 
 	fun <F> getError(t: (string: String) -> F?): F? = if (isError()) t(resp) else null
 
-	fun getException(t: (exception: Throwable?) -> Throwable): Throwable? = if (isException()) t(throwable!!) else null
+	fun getException(t: (exception: Throwable?) -> Throwable): Throwable? = if (isException()) t(throwable) else null
+
+	fun getSuccessString(): String? = if (isSuccess()) resp else null
+
+	fun getErrorString(): String? = if (isError()) resp else null
+
+	fun getException(): Throwable? = if (isException()) throwable else null
 
 	enum class HttpStatus {
 		SUCCESS, ERROR, EXCEPTION
