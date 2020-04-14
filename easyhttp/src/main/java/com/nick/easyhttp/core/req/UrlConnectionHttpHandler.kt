@@ -33,8 +33,7 @@ class UrlConnectionHttpHandler : IHttpHandler {
 		httpURLConnection.requestMethod = httpReq.reqMethod.method
 		httpURLConnection.doOutput = true
 		when (httpReq.reqMethod) {
-			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> {
-			}
+			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> httpURLConnection.doOutput = false
 			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> {
 				val outputStream = httpURLConnection.outputStream
 				outputStream.write(httpReq.jsonString.toByteArray())
