@@ -3,9 +3,6 @@ package com.nick.easyhttp.core.req
 import com.nick.easyhttp.core.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
-import okio.buffer
-import okio.sink
-import okio.source
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -17,6 +14,7 @@ import java.nio.charset.Charset
 class UrlConnectionHttpHandler : IHttpHandler {
 
 	override fun execute(httpReq: HttpReq): HttpResp {
+
 		if (httpReq.reqMethod in setOf(ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD)) {
 			httpReq.fieldMap.forEach { (key, value) ->
 				httpReq.queryMap[key] = value
@@ -32,43 +30,41 @@ class UrlConnectionHttpHandler : IHttpHandler {
 		val httpURLConnection = url.openConnection() as HttpURLConnection
 		httpURLConnection.requestMethod = httpReq.reqMethod.method
 		httpURLConnection.doOutput = true
+		httpURLConnection.addRequestProperty("accept-encoding", "gzip, deflate, br")
 		when (httpReq.reqMethod) {
 			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> httpURLConnection.doOutput = false
 			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> {
-				val outputStream = httpURLConnection.outputStream
-				outputStream.write(httpReq.jsonString.toByteArray())
+				val outputStream = DataOutputStream(httpURLConnection.outputStream)
+				outputStream.writeBytes(httpReq.jsonString)
 				outputStream.flush()
 				outputStream.close()
 			}
 			ReqMethod.POST_FORM -> {
-				val outputStream = httpURLConnection.outputStream
+				val outputStream = DataOutputStream(httpURLConnection.outputStream)
 				if (httpReq.isMultiPart) {
 					val end = "/r/n"
 					val twoHyphens = "--"
 					val boundary = "*****"
 					httpURLConnection.setRequestProperty("Content-Type", "multipart/form-data;boundary=$boundary")
-					val dataOutputStream = DataOutputStream(outputStream)
 					httpReq.multipartBody.forEach { (key, value) ->
-						dataOutputStream.writeBytes("$end$twoHyphens$boundary")
-						dataOutputStream.writeBytes("Content-Disposition: form-data; $key:${value.run {
+						outputStream.writeBytes("$end$twoHyphens$boundary")
+						outputStream.writeBytes("Content-Disposition: form-data; $key:${value.run {
 							if (this is File) run {
-								outputStream.sink().buffer().writeAll(FileInputStream(this as File).source())
+								outputStream.write(FileInputStream(this as File).readBytes())
 								this.absolutePath
 							} else this
 						}
 						};$end")
-						dataOutputStream.writeBytes("$end$twoHyphens$boundary")
+						outputStream.writeBytes("$end$twoHyphens$boundary")
 					}
-					dataOutputStream.flush()
-					dataOutputStream.close()
 				} else {
 					httpReq.fieldMap.forEach { (key, value) ->
 						stringBuilder.append("$key=$value&")
 					}
-					outputStream.write(stringBuilder.toString().substringBeforeLast("&").toByteArray())
-					outputStream.flush()
-					outputStream.close()
+					outputStream.writeBytes(stringBuilder.toString().substringBeforeLast("&"))
 				}
+				outputStream.flush()
+				outputStream.close()
 			}
 			ReqMethod.PUT_FORM, ReqMethod.DELETE_FORM, ReqMethod.PATCH_FORM -> {
 				throw RuntimeException("put, delete, patch method do not have multipart body or form body")
