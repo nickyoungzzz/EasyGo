@@ -22,7 +22,7 @@ class OkHttpHandler : IHttpHandler {
 		val httpRespBuilder = HttpResp.Builder()
 		try {
 			val response = call!!.execute()
-			val responseBody = if (response.isRedirect) response.body as ResponseBody else response.cacheResponse?.body as ResponseBody
+			val responseBody = response.body as ResponseBody
 			val resp = if (!httpReq.asDownload) responseBody.string() else ""
 			httpRespBuilder.isSuccessful(response.isSuccessful)
 				.code(response.code)
