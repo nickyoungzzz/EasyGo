@@ -16,6 +16,8 @@ import javax.net.ssl.HttpsURLConnection
 
 class UrlConnectionHandler : IHttpHandler {
 
+	private lateinit var connection : HttpsURLConnection
+
 	override fun execute(httpReq: HttpReq): HttpResp {
 
 		if (httpReq.reqMethod in setOf(ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD)) {
@@ -30,30 +32,30 @@ class UrlConnectionHandler : IHttpHandler {
 		}
 		val url = URL("${httpReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
 		stringBuilder.clear()
-		val httpURLConnection = url.openConnection() as HttpsURLConnection
-		httpURLConnection.requestMethod = httpReq.reqMethod.method
-		httpURLConnection.connectTimeout = httpHandlerConfig.connectTimeout.toInt()
-		httpURLConnection.readTimeout = httpHandlerConfig.readTimeOut.toInt()
-		httpURLConnection.doOutput = true
-		httpURLConnection.hostnameVerifier = httpHandlerConfig.hostnameVerifier
-		httpURLConnection.sslSocketFactory = httpURLConnection.sslSocketFactory
-		httpURLConnection.addRequestProperty("accept-encoding", "gzip, deflate, br")
-		httpURLConnection.useCaches
+		connection = url.openConnection(httpHandlerConfig.proxy) as HttpsURLConnection
+		connection.requestMethod = httpReq.reqMethod.method
+		connection.connectTimeout = httpHandlerConfig.connectTimeout.toInt()
+		connection.readTimeout = httpHandlerConfig.readTimeOut.toInt()
+		connection.doOutput = true
+		connection.hostnameVerifier = httpHandlerConfig.hostnameVerifier
+		connection.sslSocketFactory = connection.sslSocketFactory
+		connection.addRequestProperty("accept-encoding", "gzip, deflate, br")
 		when (httpReq.reqMethod) {
-			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> httpURLConnection.doOutput = false
+			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> connection.doOutput = false
 			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> {
-				val outputStream = DataOutputStream(httpURLConnection.outputStream)
+				connection.setRequestProperty("Content-Type", "application/json")
+				val outputStream = DataOutputStream(connection.outputStream)
 				outputStream.writeBytes(httpReq.jsonString)
 				outputStream.flush()
 				outputStream.close()
 			}
 			ReqMethod.POST_FORM -> {
-				val outputStream = DataOutputStream(httpURLConnection.outputStream)
+				val outputStream = DataOutputStream(connection.outputStream)
 				if (httpReq.isMultiPart) {
 					val end = "/r/n"
 					val twoHyphens = "--"
 					val boundary = "*****"
-					httpURLConnection.setRequestProperty("Content-Type", "multipart/form-data;boundary=$boundary")
+					connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=$boundary")
 					httpReq.multipartBody.forEach { (key, value) ->
 						outputStream.writeBytes("$end$twoHyphens$boundary")
 						outputStream.writeBytes("Content-Disposition: form-data; $key:${value.run {
@@ -80,15 +82,15 @@ class UrlConnectionHandler : IHttpHandler {
 		}
 		val httpRespBuilder = HttpResp.Builder()
 		try {
-			httpURLConnection.connect()
-			val success = httpURLConnection.responseCode in HTTP_OK until HTTP_MULT_CHOICE
-			val inputStream = if (success) httpURLConnection.inputStream else httpURLConnection.errorStream
+			connection.connect()
+			val success = connection.responseCode in HTTP_OK until HTTP_MULT_CHOICE
+			val inputStream = if (success) connection.inputStream else connection.errorStream
 			val resp = if (httpReq.asDownload) "" else inputStream.readBytes().toString(Charset.defaultCharset())
-			httpRespBuilder.code(httpURLConnection.responseCode)
+			httpRespBuilder.code(connection.responseCode)
 				.byteData(inputStream)
 				.isSuccessful(success)
-				.headers(httpURLConnection.headerFields)
-				.contentLength(httpURLConnection.contentLength.toLong())
+				.headers(connection.headerFields)
+				.contentLength(connection.contentLength.toLong())
 				.resp(resp)
 			if (!httpReq.asDownload) {
 				inputStream.close()
@@ -96,7 +98,7 @@ class UrlConnectionHandler : IHttpHandler {
 		} catch (e: IOException) {
 			httpRespBuilder.exception(e)
 		} finally {
-			httpURLConnection.disconnect()
+			connection.disconnect()
 		}
 		return httpRespBuilder.build()
 	}
@@ -106,5 +108,6 @@ class UrlConnectionHandler : IHttpHandler {
 	}
 
 	override fun cancel() {
+		connection.disconnect()
 	}
 }
