@@ -1,10 +1,11 @@
 package com.nick.easyhttp.core.req
 
-import com.nick.easyhttp.config.OkHttpConfig
 import com.nick.easyhttp.core.ReqMethod
+import com.nick.easyhttp.core.httpHandlerConfig
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import okhttp3.*
+import okhttp3.Headers.Companion.toHeaders
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -15,18 +16,13 @@ class OkHttpHandler : IHttpHandler {
 
 	private var call: Call? = null
 
-	private val okHttpClient by lazy {
-		OkHttpConfig.okHttpClient
-			?: throw RuntimeException("please config EasyHttp first!!!")
-	}
-
 	override fun execute(httpReq: HttpReq): HttpResp {
 
-		call = okHttpClient.newCall(request(reqConfig(httpReq)))
+		call = httpHandlerConfig.okHttpClient.newCall(request(reqConfig(httpReq)))
 		val httpRespBuilder = HttpResp.Builder()
 		try {
 			val response = call!!.execute()
-			val responseBody = response.body as ResponseBody
+			val responseBody = if (response.isRedirect) response.body as ResponseBody else response.cacheResponse?.body as ResponseBody
 			val resp = if (!httpReq.asDownload) responseBody.string() else ""
 			httpRespBuilder.isSuccessful(response.isSuccessful)
 				.code(response.code)
@@ -79,7 +75,7 @@ class OkHttpHandler : IHttpHandler {
 				}
 				url("${httpReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
 			}
-		}.build()
+		}.cacheControl(CacheControl.parse(httpReq.headerMap.toHeaders())).build()
 	}
 
 	// 获取表单请求的RequestBody

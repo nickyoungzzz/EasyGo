@@ -2,7 +2,7 @@
 
 package com.nick.easyhttp.core
 
-import com.nick.easyhttp.config.IHttpHandlerConfig
+import com.nick.easyhttp.config.HttpHandlerConfig
 
 fun String.get() = HttpRequest(this, ReqMethod.GET)
 
@@ -28,14 +28,13 @@ fun String.head() = HttpRequest(this, ReqMethod.HEAD)
 
 @Volatile private var hasConfig = false
 
-private val httpConfigList = arrayListOf<IHttpHandlerConfig>()
+lateinit var httpHandlerConfig: HttpHandlerConfig
 
-@Synchronized fun configEasyHttp(httpConfig: (configList: MutableList<IHttpHandlerConfig>) -> Unit) {
+@Synchronized fun init(handlerConfig: HttpHandlerConfig) {
 	if (hasConfig) {
 		throw RuntimeException("Do not config again")
 	}
-	httpConfig(httpConfigList)
-	httpConfigList.filter { it.needConfig() }.forEach { it.config() }
+	httpHandlerConfig = handlerConfig
 	hasConfig = true
 }
 

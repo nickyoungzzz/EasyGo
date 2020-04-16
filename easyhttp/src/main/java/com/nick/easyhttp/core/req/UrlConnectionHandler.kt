@@ -1,17 +1,20 @@
 package com.nick.easyhttp.core.req
 
 import com.nick.easyhttp.core.ReqMethod
+import com.nick.easyhttp.core.httpHandlerConfig
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
-import java.net.HttpURLConnection
+import java.net.HttpURLConnection.HTTP_MULT_CHOICE
+import java.net.HttpURLConnection.HTTP_OK
 import java.net.URL
 import java.nio.charset.Charset
+import javax.net.ssl.HttpsURLConnection
 
-class UrlConnectionHttpHandler : IHttpHandler {
+class UrlConnectionHandler : IHttpHandler {
 
 	override fun execute(httpReq: HttpReq): HttpResp {
 
@@ -27,10 +30,15 @@ class UrlConnectionHttpHandler : IHttpHandler {
 		}
 		val url = URL("${httpReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
 		stringBuilder.clear()
-		val httpURLConnection = url.openConnection() as HttpURLConnection
+		val httpURLConnection = url.openConnection() as HttpsURLConnection
 		httpURLConnection.requestMethod = httpReq.reqMethod.method
+		httpURLConnection.connectTimeout = httpHandlerConfig.connectTimeout.toInt()
+		httpURLConnection.readTimeout = httpHandlerConfig.readTimeOut.toInt()
 		httpURLConnection.doOutput = true
+		httpURLConnection.hostnameVerifier = httpHandlerConfig.hostnameVerifier
+		httpURLConnection.sslSocketFactory = httpURLConnection.sslSocketFactory
 		httpURLConnection.addRequestProperty("accept-encoding", "gzip, deflate, br")
+		httpURLConnection.useCaches
 		when (httpReq.reqMethod) {
 			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> httpURLConnection.doOutput = false
 			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> {
@@ -73,7 +81,7 @@ class UrlConnectionHttpHandler : IHttpHandler {
 		val httpRespBuilder = HttpResp.Builder()
 		try {
 			httpURLConnection.connect()
-			val success = httpURLConnection.responseCode in 200..299
+			val success = httpURLConnection.responseCode in HTTP_OK until HTTP_MULT_CHOICE
 			val inputStream = if (success) httpURLConnection.inputStream else httpURLConnection.errorStream
 			val resp = if (httpReq.asDownload) "" else inputStream.readBytes().toString(Charset.defaultCharset())
 			httpRespBuilder.code(httpURLConnection.responseCode)
