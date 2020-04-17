@@ -1,6 +1,5 @@
 package com.nick.easyhttp.core.req.urlconnection
 
-import com.nick.easyhttp.config.EasyHttp
 import com.nick.easyhttp.core.ReqMethod
 import com.nick.easyhttp.core.download.IDownloadHandler
 import com.nick.easyhttp.core.download.OkIoDownHandler
@@ -13,7 +12,9 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.lang.reflect.Method
 import java.net.HttpURLConnection
+import java.net.InetAddress
 import java.net.Proxy
 import java.net.URL
 import java.nio.charset.Charset
@@ -34,6 +35,7 @@ class UrlConnectionClient constructor(builder: Builder) {
 	var readTimeOut = builder.readTimeOut
 	var writeTimeOut = builder.writeTimeOut
 	var interceptor = builder.interceptor
+	var dns = builder.dns
 
 	constructor() : this(Builder())
 
@@ -51,6 +53,7 @@ class UrlConnectionClient constructor(builder: Builder) {
 		internal var readTimeOut: Long = 15000L
 		internal var writeTimeOut: Long = 15000L
 		internal var interceptor = fun(_: HttpReq, httpResp: HttpResp) = httpResp
+		internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
 
 		constructor(urlConnectionClient: UrlConnectionClient) : this() {
 			this.proxy = urlConnectionClient.proxy
@@ -63,6 +66,7 @@ class UrlConnectionClient constructor(builder: Builder) {
 			this.readTimeOut = urlConnectionClient.readTimeOut
 			this.writeTimeOut = urlConnectionClient.writeTimeOut
 			this.interceptor = urlConnectionClient.interceptor
+			this.dns = urlConnectionClient.dns
 		}
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
@@ -85,7 +89,21 @@ class UrlConnectionClient constructor(builder: Builder) {
 
 		fun interceptor(interceptor: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) = apply { this.interceptor = interceptor }
 
+		fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
+
 		fun build() = UrlConnectionClient(this)
+	}
+
+	private fun makeDns(host: String, array: Array<InetAddress>) {
+		
+		val netAddressClass: Class<InetAddress> = InetAddress::class.java
+		val field = netAddressClass.getDeclaredField("addressCache")
+		field.isAccessible = true
+		val obj = field[netAddressClass]
+		val cacheClass = obj.javaClass
+		val putMethod: Method = cacheClass.getDeclaredMethod("put", String::class.java, Array<InetAddress>::class.java)
+		putMethod.isAccessible = true
+		putMethod.invoke(obj, host, array)
 	}
 
 	private lateinit var connection: HttpsURLConnection
@@ -102,13 +120,14 @@ class UrlConnectionClient constructor(builder: Builder) {
 			stringBuilder.append("$key=$value&")
 		}
 		val url = URL("${urlConnectionReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
+		makeDns(url.host, this.dns(url.host))
 		stringBuilder.clear()
-		connection = url.openConnection(EasyHttp.urlConnectionClient.proxy) as HttpsURLConnection
+		connection = url.openConnection(this.proxy) as HttpsURLConnection
 		connection.requestMethod = urlConnectionReq.reqMethod.method
-		connection.connectTimeout = EasyHttp.urlConnectionClient.connectTimeout.toInt()
-		connection.readTimeout = EasyHttp.urlConnectionClient.readTimeOut.toInt()
+		connection.connectTimeout = this.connectTimeout.toInt()
+		connection.readTimeout = this.readTimeOut.toInt()
 		connection.doOutput = true
-		connection.hostnameVerifier = EasyHttp.urlConnectionClient.hostnameVerifier
+		connection.hostnameVerifier = this.hostnameVerifier
 		connection.sslSocketFactory = connection.sslSocketFactory
 		connection.addRequestProperty("accept-encoding", "gzip, deflate, br")
 		when (urlConnectionReq.reqMethod) {

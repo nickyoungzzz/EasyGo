@@ -1,7 +1,9 @@
 package com.nick.easyhttp.config
 
 import com.nick.easyhttp.core.req.urlconnection.UrlConnectionClient
+import okhttp3.Dns
 import okhttp3.OkHttpClient
+import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
 object EasyHttp {
@@ -27,6 +29,11 @@ object EasyHttp {
 			.connectTimeout(config.connectTimeout, TimeUnit.MILLISECONDS)
 			.hostnameVerifier(config.hostnameVerifier)
 			.sslSocketFactory(config.sslSocketFactory, config.x509TrustManager)
+			.dns(object : Dns {
+				override fun lookup(hostname: String): List<InetAddress> {
+					return httpConfig.dns(hostname).toList()
+				}
+			})
 			.build()
 
 		urlConnectionClient = urlConnectionClient.newBuilder().proxy(config.proxy)
@@ -37,6 +44,7 @@ object EasyHttp {
 			.x509TrustManager(config.x509TrustManager)
 			.downloadHandler(config.downLoadHandler)
 			.interceptor(config.interceptor)
+			.dns(config.dns)
 			.build()
 
 		hasConfig = true

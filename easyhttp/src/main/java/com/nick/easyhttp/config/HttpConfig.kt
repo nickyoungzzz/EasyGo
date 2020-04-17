@@ -7,6 +7,7 @@ import com.nick.easyhttp.core.req.okhttp.OkHttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.util.SslHelper
+import java.net.InetAddress
 import java.net.Proxy
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLSocketFactory
@@ -24,6 +25,7 @@ class HttpConfig internal constructor(builder: Builder) {
 	var readTimeOut = builder.readTimeOut
 	var writeTimeOut = builder.writeTimeOut
 	var interceptor = builder.interceptor
+	var dns = builder.dns
 
 	constructor() : this(Builder())
 
@@ -40,6 +42,7 @@ class HttpConfig internal constructor(builder: Builder) {
 		internal var readTimeOut: Long = 15000L
 		internal var writeTimeOut: Long = 15000L
 		internal var interceptor = fun(_: HttpReq, httpResp: HttpResp) = httpResp
+		internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
 
 		constructor(httpConfig: HttpConfig) : this() {
 			this.proxy = httpConfig.proxy
@@ -52,6 +55,7 @@ class HttpConfig internal constructor(builder: Builder) {
 			this.readTimeOut = httpConfig.readTimeOut
 			this.writeTimeOut = httpConfig.writeTimeOut
 			this.interceptor = httpConfig.interceptor
+			this.dns = httpConfig.dns
 		}
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
@@ -73,6 +77,8 @@ class HttpConfig internal constructor(builder: Builder) {
 		fun writeTimeOut(writeTimeOut: Long) = apply { this.writeTimeOut = writeTimeOut }
 
 		fun interceptor(interceptor: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) = apply { this.interceptor = interceptor }
+
+		fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
 
 		fun build() = HttpConfig(this)
 	}
