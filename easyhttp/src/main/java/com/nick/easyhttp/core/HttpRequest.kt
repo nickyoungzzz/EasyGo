@@ -1,5 +1,6 @@
 package com.nick.easyhttp.core
 
+import com.nick.easyhttp.config.EasyHttp
 import com.nick.easyhttp.core.download.DownloadParam
 import com.nick.easyhttp.core.download.DownloadState
 import com.nick.easyhttp.core.download.IDownloadHandler
@@ -31,9 +32,9 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private var asDownload = false
 
-	private var httpHandler: IHttpHandler = httpHandlerConfig.httpHandler
+	private var httpHandler: IHttpHandler = EasyHttp.httpConfig.httpHandler
 
-	private var downloadHandler: IDownloadHandler = httpHandlerConfig.downLoadHandler
+	private var downloadHandler: IDownloadHandler = EasyHttp.httpConfig.downLoadHandler
 
 	private lateinit var downloadParam: DownloadParam
 
@@ -129,9 +130,9 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	}
 
 	fun request(): HttpResult {
-		val httpResp = httpHandlerConfig.interceptor(httpReq(), httpHandler.execute(httpReq()))
-		val status = if (httpResp.exception != null) HttpResult.HttpStatus.EXCEPTION
-		else (if (httpResp.isSuccessful) HttpResult.HttpStatus.SUCCESS else HttpResult.HttpStatus.ERROR)
+		val httpResp = EasyHttp.httpConfig.interceptor(httpReq(), httpHandler.execute(httpReq()))
+		val status = if (httpResp.exception != null) HttpStatus.EXCEPTION
+		else (if (httpResp.isSuccessful) HttpStatus.SUCCESS else HttpStatus.ERROR)
 		return HttpResult.Builder().code(httpResp.code)
 			.headers(httpResp.headers)
 			.resp(httpResp.resp)

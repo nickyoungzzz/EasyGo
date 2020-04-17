@@ -1,5 +1,7 @@
 package com.nick.easyhttp.result
 
+import com.nick.easyhttp.core.HttpStatus
+
 class HttpResult internal constructor(builder: Builder) {
 
 	val code: Int = builder.code
@@ -62,8 +64,4 @@ class HttpResult internal constructor(builder: Builder) {
 	fun getErrorString(): String? = if (isError()) resp else null
 
 	fun getException(): Throwable? = if (isException()) throwable else null
-
-	enum class HttpStatus {
-		SUCCESS, ERROR, EXCEPTION
-	}
 }

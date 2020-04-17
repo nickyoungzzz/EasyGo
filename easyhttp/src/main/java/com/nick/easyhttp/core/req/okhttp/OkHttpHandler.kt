@@ -1,7 +1,8 @@
-package com.nick.easyhttp.core.req
+package com.nick.easyhttp.core.req.okhttp
 
+import com.nick.easyhttp.config.EasyHttp
 import com.nick.easyhttp.core.ReqMethod
-import com.nick.easyhttp.core.httpHandlerConfig
+import com.nick.easyhttp.core.req.IHttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import okhttp3.*
@@ -12,16 +13,17 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.IOException
 
-class OkHttpHandler : IHttpHandler {
+open class OkHttpHandler : IHttpHandler {
 
-	private var call: Call? = null
+	private lateinit var call: Call
+	private val okHttpClient: OkHttpClient = EasyHttp.okHttpClient
 
 	override fun execute(httpReq: HttpReq): HttpResp {
 
-		call = httpHandlerConfig.okHttpClient.newCall(request(reqConfig(httpReq)))
+		call = okHttpClient.newCall(request(httpReq))
 		val httpRespBuilder = HttpResp.Builder()
 		try {
-			val response = call!!.execute()
+			val response = call.execute()
 			val responseBody = response.body as ResponseBody
 			val resp = if (!httpReq.asDownload) responseBody.string() else ""
 			httpRespBuilder.isSuccessful(response.isSuccessful)
@@ -36,13 +38,9 @@ class OkHttpHandler : IHttpHandler {
 		return httpRespBuilder.build()
 	}
 
-	override fun reqConfig(httpReq: HttpReq): HttpReq {
-		return httpReq
-	}
-
 	override fun cancel() {
-		if (call?.isExecuted()!! && !call?.isCanceled()!!) {
-			call?.cancel()
+		if (call.isExecuted() && !call.isCanceled()) {
+			call.cancel()
 		}
 	}
 

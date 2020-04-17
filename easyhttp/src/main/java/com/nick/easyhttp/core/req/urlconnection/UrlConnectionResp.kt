@@ -1,14 +1,14 @@
-package com.nick.easyhttp.result
+package com.nick.easyhttp.core.req.urlconnection
 
 import java.io.InputStream
 
-class HttpResp internal constructor(builder: Builder) {
+class UrlConnectionResp internal constructor(builder: Builder) {
 
 	val resp: String = builder.resp
 	val code: Int = builder.code
 	val isSuccessful: Boolean = builder.isSuccessful
 	val headers: Map<String, List<String>> = builder.headers
-	val exception: Throwable? = builder.exception
+	val exception = builder.exception
 	val contentLength = builder.contentLength
 	val inputStream: InputStream? = builder.inputStream
 
@@ -24,14 +24,14 @@ class HttpResp internal constructor(builder: Builder) {
 		internal var contentLength: Long = 0
 		internal var inputStream: InputStream? = null
 
-		internal constructor(httpResp: HttpResp) : this() {
-			this.resp = httpResp.resp
-			this.code = httpResp.code
-			this.isSuccessful = httpResp.isSuccessful
-			this.headers = httpResp.headers
-			this.exception = httpResp.exception
-			this.contentLength = httpResp.contentLength
-			this.inputStream = httpResp.inputStream
+		internal constructor(urlConnectionResp: UrlConnectionResp) : this() {
+			this.resp = urlConnectionResp.resp
+			this.code = urlConnectionResp.code
+			this.isSuccessful = urlConnectionResp.isSuccessful
+			this.headers = urlConnectionResp.headers
+			this.exception = urlConnectionResp.exception
+			this.contentLength = urlConnectionResp.contentLength
+			this.inputStream = urlConnectionResp.inputStream
 		}
 
 		fun resp(resp: String) = apply {
@@ -50,7 +50,7 @@ class HttpResp internal constructor(builder: Builder) {
 			this.headers = headers
 		}
 
-		fun exception(exception: Throwable?) = apply {
+		fun exception(exception: Exception) = apply {
 			this.exception = exception
 		}
 
@@ -58,10 +58,10 @@ class HttpResp internal constructor(builder: Builder) {
 			this.contentLength = contentLength
 		}
 
-		fun byteData(inputStream: InputStream?) = apply {
+		fun byteData(inputStream: InputStream) = apply {
 			this.inputStream = inputStream
 		}
 
-		fun build(): HttpResp = HttpResp(this)
+		fun build(): UrlConnectionResp = UrlConnectionResp(this)
 	}
 }

@@ -3,18 +3,16 @@ package com.nick.easyhttp.config
 import com.nick.easyhttp.core.download.IDownloadHandler
 import com.nick.easyhttp.core.download.OkIoDownHandler
 import com.nick.easyhttp.core.req.IHttpHandler
-import com.nick.easyhttp.core.req.OkHttpHandler
+import com.nick.easyhttp.core.req.okhttp.OkHttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.util.SslHelper
-import okhttp3.OkHttpClient
 import java.net.Proxy
-import java.util.concurrent.TimeUnit
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.X509TrustManager
 
-class HttpHandlerConfig internal constructor(builder: Builder) {
+class HttpConfig internal constructor(builder: Builder) {
 
 	var proxy = builder.proxy
 	var httpHandler = builder.httpHandler
@@ -26,7 +24,8 @@ class HttpHandlerConfig internal constructor(builder: Builder) {
 	var readTimeOut = builder.readTimeOut
 	var writeTimeOut = builder.writeTimeOut
 	var interceptor = builder.interceptor
-	var okHttpClient = builder.okHttpClient
+
+	constructor() : this(Builder())
 
 	fun newBuilder() = Builder(this)
 
@@ -41,25 +40,18 @@ class HttpHandlerConfig internal constructor(builder: Builder) {
 		internal var readTimeOut: Long = 15000L
 		internal var writeTimeOut: Long = 15000L
 		internal var interceptor = fun(_: HttpReq, httpResp: HttpResp) = httpResp
-		internal var okHttpClient: OkHttpClient = OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, x509TrustManager)
-			.hostnameVerifier(hostNameVerifier)
-			.proxy(proxy)
-			.readTimeout(readTimeOut, TimeUnit.MILLISECONDS)
-			.writeTimeout(writeTimeOut, TimeUnit.MILLISECONDS)
-			.build()
 
-		constructor(httpHandlerConfig: HttpHandlerConfig) : this() {
-			this.proxy = httpHandlerConfig.proxy
-			this.httpHandler = httpHandlerConfig.httpHandler
-			this.hostNameVerifier = httpHandlerConfig.hostnameVerifier
-			this.sslSocketFactory = httpHandlerConfig.sslSocketFactory
-			this.x509TrustManager = httpHandlerConfig.x509TrustManager
-			this.downloadHandler = httpHandlerConfig.downLoadHandler
-			this.connectTimeOut = httpHandlerConfig.connectTimeout
-			this.readTimeOut = httpHandlerConfig.readTimeOut
-			this.writeTimeOut = httpHandlerConfig.writeTimeOut
-			this.interceptor = httpHandlerConfig.interceptor
-			this.okHttpClient = httpHandlerConfig.okHttpClient
+		constructor(httpConfig: HttpConfig) : this() {
+			this.proxy = httpConfig.proxy
+			this.httpHandler = httpConfig.httpHandler
+			this.hostNameVerifier = httpConfig.hostnameVerifier
+			this.sslSocketFactory = httpConfig.sslSocketFactory
+			this.x509TrustManager = httpConfig.x509TrustManager
+			this.downloadHandler = httpConfig.downLoadHandler
+			this.connectTimeOut = httpConfig.connectTimeout
+			this.readTimeOut = httpConfig.readTimeOut
+			this.writeTimeOut = httpConfig.writeTimeOut
+			this.interceptor = httpConfig.interceptor
 		}
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
@@ -82,6 +74,6 @@ class HttpHandlerConfig internal constructor(builder: Builder) {
 
 		fun interceptor(interceptor: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) = apply { this.interceptor = interceptor }
 
-		fun build() = HttpHandlerConfig(this)
+		fun build() = HttpConfig(this)
 	}
 }
