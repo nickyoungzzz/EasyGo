@@ -18,7 +18,7 @@ open class UrlConnectionHandler : IHttpHandler {
 			.headerMap(httpReq.headerMap).queryMap(httpReq.queryMap)
 			.multipartBody(httpReq.multipartBody).build()
 
-		val urlConnectionResp = urlConnectionClient.execute(urlConnectionReq)
+		val urlConnectionResp = urlConnectionClient.proceed(urlConnectionReq)
 		return HttpResp.Builder().code(urlConnectionResp.code).contentLength(urlConnectionResp.contentLength)
 			.isSuccessful(urlConnectionResp.isSuccessful).exception(urlConnectionResp.exception)
 			.byteData(urlConnectionResp.inputStream).headers(urlConnectionResp.headers)

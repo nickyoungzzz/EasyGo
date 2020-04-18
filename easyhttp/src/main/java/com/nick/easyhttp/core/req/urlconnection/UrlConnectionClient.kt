@@ -1,22 +1,12 @@
 package com.nick.easyhttp.core.req.urlconnection
 
 import com.nick.easyhttp.core.ReqMethod
-import com.nick.easyhttp.core.download.IDownloadHandler
-import com.nick.easyhttp.core.download.OkIoDownHandler
-import com.nick.easyhttp.core.req.IHttpHandler
-import com.nick.easyhttp.core.req.okhttp.OkHttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.util.SslHelper
-import java.io.DataOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
+import java.io.*
 import java.lang.reflect.Method
-import java.net.HttpURLConnection
-import java.net.InetAddress
-import java.net.Proxy
-import java.net.URL
+import java.net.*
 import java.nio.charset.Charset
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
@@ -26,11 +16,9 @@ import javax.net.ssl.X509TrustManager
 class UrlConnectionClient constructor(builder: Builder) {
 
 	var proxy = builder.proxy
-	var httpHandler = builder.httpHandler
 	var hostnameVerifier = builder.hostNameVerifier
 	var sslSocketFactory = builder.sslSocketFactory
 	var x509TrustManager = builder.x509TrustManager
-	var downLoadHandler = builder.downloadHandler
 	var connectTimeout = builder.connectTimeOut
 	var readTimeOut = builder.readTimeOut
 	var writeTimeOut = builder.writeTimeOut
@@ -44,11 +32,9 @@ class UrlConnectionClient constructor(builder: Builder) {
 	class Builder constructor() {
 
 		internal var proxy: Proxy = Proxy.NO_PROXY
-		internal var httpHandler: IHttpHandler = OkHttpHandler()
 		internal var hostNameVerifier: HostnameVerifier = SslHelper.getHostnameVerifier()
 		internal var sslSocketFactory: SSLSocketFactory = SslHelper.getSSLSocketFactory()
 		internal var x509TrustManager: X509TrustManager = SslHelper.getTrustManager()
-		internal var downloadHandler: IDownloadHandler = OkIoDownHandler()
 		internal var connectTimeOut: Long = 15000L
 		internal var readTimeOut: Long = 15000L
 		internal var writeTimeOut: Long = 15000L
@@ -57,11 +43,9 @@ class UrlConnectionClient constructor(builder: Builder) {
 
 		constructor(urlConnectionClient: UrlConnectionClient) : this() {
 			this.proxy = urlConnectionClient.proxy
-			this.httpHandler = urlConnectionClient.httpHandler
 			this.hostNameVerifier = urlConnectionClient.hostnameVerifier
 			this.sslSocketFactory = urlConnectionClient.sslSocketFactory
 			this.x509TrustManager = urlConnectionClient.x509TrustManager
-			this.downloadHandler = urlConnectionClient.downLoadHandler
 			this.connectTimeOut = urlConnectionClient.connectTimeout
 			this.readTimeOut = urlConnectionClient.readTimeOut
 			this.writeTimeOut = urlConnectionClient.writeTimeOut
@@ -71,15 +55,11 @@ class UrlConnectionClient constructor(builder: Builder) {
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
 
-		fun httpHandler(httpHandler: IHttpHandler) = apply { this.httpHandler = httpHandler }
-
 		fun hostNameVerifier(hostNameVerifier: HostnameVerifier) = apply { this.hostNameVerifier = hostNameVerifier }
 
 		fun sslSocketFactory(sslSocketFactory: SSLSocketFactory) = apply { this.sslSocketFactory = sslSocketFactory }
 
 		fun x509TrustManager(x509TrustManager: X509TrustManager) = apply { this.x509TrustManager = x509TrustManager }
-
-		fun downloadHandler(downloadHandler: IDownloadHandler) = apply { this.downloadHandler = downloadHandler }
 
 		fun connectTimeOut(connectTimeOut: Long) = apply { this.connectTimeOut = connectTimeOut }
 
@@ -95,7 +75,7 @@ class UrlConnectionClient constructor(builder: Builder) {
 	}
 
 	private fun makeDns(host: String, array: Array<InetAddress>) {
-		
+
 		val netAddressClass: Class<InetAddress> = InetAddress::class.java
 		val field = netAddressClass.getDeclaredField("addressCache")
 		field.isAccessible = true
@@ -108,7 +88,7 @@ class UrlConnectionClient constructor(builder: Builder) {
 
 	private lateinit var connection: HttpsURLConnection
 
-	fun execute(urlConnectionReq: UrlConnectionReq): UrlConnectionResp {
+	fun proceed(urlConnectionReq: UrlConnectionReq): UrlConnectionResp {
 		if (urlConnectionReq.reqMethod in setOf(ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD)) {
 			urlConnectionReq.fieldMap.forEach { (key, value) ->
 				urlConnectionReq.queryMap[key] = value
@@ -130,6 +110,45 @@ class UrlConnectionClient constructor(builder: Builder) {
 		connection.hostnameVerifier = this.hostnameVerifier
 		connection.sslSocketFactory = connection.sslSocketFactory
 		connection.addRequestProperty("accept-encoding", "gzip, deflate, br")
+		ResponseCache.setDefault(object : ResponseCache() {
+
+			private val mCache = LinkedHashMap<URI, CacheResponse>()
+
+			private val maxCacheSize = 10
+
+			override fun put(uri: URI, conn: URLConnection): CacheRequest {
+				if (mCache.size >= maxCacheSize) {
+					mCache.entries.iterator().remove()
+				}
+				val cacheRequest = object : CacheRequest() {
+
+					override fun getBody(): OutputStream {
+						return ByteArrayOutputStream()
+					}
+
+					override fun abort() {
+					}
+				}
+				val cacheResponse = object : CacheResponse() {
+					override fun getHeaders(): MutableMap<String, MutableList<String>> {
+						return conn.headerFields
+					}
+
+					override fun getBody(): InputStream {
+						return conn.getInputStream()
+					}
+				}
+				mCache[uri] = cacheResponse
+				return cacheRequest
+			}
+
+			override fun get(uri: URI, rqstMethod: String?, rqstHeaders: MutableMap<String, MutableList<String>>?): CacheResponse? {
+				if (rqstMethod == "GET") {
+					return mCache[uri]
+				}
+				return null
+			}
+		})
 		when (urlConnectionReq.reqMethod) {
 			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> connection.doOutput = false
 			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> {

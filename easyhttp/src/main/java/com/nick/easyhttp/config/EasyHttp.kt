@@ -1,6 +1,7 @@
 package com.nick.easyhttp.config
 
 import com.nick.easyhttp.core.req.urlconnection.UrlConnectionClient
+import okhttp3.CookieJar
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import java.net.InetAddress
@@ -34,6 +35,7 @@ object EasyHttp {
 					return httpConfig.dns(hostname).toList()
 				}
 			})
+			.cookieJar(CookieJar.NO_COOKIES)
 			.build()
 
 		urlConnectionClient = urlConnectionClient.newBuilder().proxy(config.proxy)
@@ -42,7 +44,6 @@ object EasyHttp {
 			.hostNameVerifier(config.hostnameVerifier)
 			.sslSocketFactory(config.sslSocketFactory)
 			.x509TrustManager(config.x509TrustManager)
-			.downloadHandler(config.downLoadHandler)
 			.interceptor(config.interceptor)
 			.dns(config.dns)
 			.build()
