@@ -12,12 +12,12 @@
 
 5、分层设计。请求数据装载层、网络请求层、数据解析层分离；
 
-6、网络层设计统一的接口，目前已内置retrofit，可加入其他网络框架作为网络请求层；
+6、网络层设计统一的接口，目前已内置OkHttp，HttpsUrlConnection，可加入其他网络框架作为网络请求层；
 
 7、文件下载使用okio来进行文件读写，可以自定义其他框架来读写文件；
 ### 一、添加依赖 
 ```
-implementation 'com.nick.common:easyhttp:1.1.0'
+implementation 'com.nick.common:easyhttp:1.1.2'
 ```
 ### 二、开始使用
 #### 1、普通请求
