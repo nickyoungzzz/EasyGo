@@ -63,7 +63,7 @@ implementation 'com.nick.common:easyhttp:1.1.2'
 	val exception = httpResult.getException() // 直接获取失败的异常，如SocketTimeoutException, ConnectionTimeOutException
 
 	
-	// 进行文件下载
+// 进行文件下载
 	val downloadUrl = "https://www.baidu.com/pic/girl.png"
 
 	// 请求参数配置跟发起普通请求一样的
