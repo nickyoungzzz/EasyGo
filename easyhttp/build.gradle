@@ -16,7 +16,7 @@ publish {
     userOrg = 'niekai'
     groupId = 'com.nick.common'
     artifactId = 'easyhttp'
-    publishVersion = '1.1.2'
+    publishVersion = '1.1.3'
     desc = 'this is a lib created with kotlin/okhttp which can be used to call http request'
     website = 'https://github.com/nickyoungzzz/EasyHttp'
 }
