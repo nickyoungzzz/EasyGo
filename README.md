@@ -21,8 +21,8 @@
 8、文件下载时文件保存使用okio来读写，可以实现IDownloadhandler自定义其他框架来读写文件；
 
 ### 一、添加依赖 
-```
-implementation 'com.nick.common:easyhttp:1.1.2'
+```3
+implementation 'com.nick.common:easyhttp:1.1.3'
 ```
 ### 二、使用方法
 #### 1、全局配置
