@@ -5,7 +5,7 @@ import com.nick.easyhttp.core.req.IHttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 
-open class UrlConnectionHandler : IHttpHandler {
+class UrlConnectionHandler : IHttpHandler {
 
 	private val urlConnectionClient: UrlConnectionClient = EasyHttp.urlConnectionClient
 

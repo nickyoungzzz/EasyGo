@@ -13,7 +13,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.IOException
 
-open class OkHttpHandler : IHttpHandler {
+class OkHttpHandler : IHttpHandler {
 
 	private lateinit var call: Call
 	private val okHttpClient: OkHttpClient = EasyHttp.okHttpClient
