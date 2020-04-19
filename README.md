@@ -45,7 +45,7 @@ implementation 'com.nick.common:easyhttp:1.1.2'
 	// 配置全局的HttpConfig，该行代码只可执行一次，可在项目初始化时执行。如果不配置，则使用默认该库中的默认配置。
 	EasyHttp.init(httpConfig)
 ```
-#### 2、普通请求
+#### 2、发送请求
 ```
 // 发起普通请求
 	val httpResult: HttpResult = request.request()
