@@ -14,7 +14,7 @@
 
 5、分层设计。请求数据装载层、网络请求层、数据解析层分离；
 
-6、网络层设计统一的接口，目前已内置OkHttp，HttpsUrlConnection，可实现IHttpHandler自定义其他网络框架作为网络请求层；
+6、网络层设计统一的接口，目前已内置OkHttp，HttpsUrlConnection，可实现IHttpHandler使用其他网络框架作为请求层；
 
 7、可在全局配置网络请求层的Handler，也可为每个请求单独配置请求层的Handler；
 
@@ -45,7 +45,7 @@ implementation 'com.nick.common:easyhttp:1.1.2'
 	// 配置全局的HttpConfig，该行代码只可执行一次，可在项目初始化时执行。如果不配置，则使用默认该库中的默认配置。
 	EasyHttp.init(httpConfig)
 ```
-#### 2、普通请求
+#### 2、发送请求
 ```
 // 发起普通请求
 	val httpResult: HttpResult = request.request()
@@ -63,7 +63,7 @@ implementation 'com.nick.common:easyhttp:1.1.2'
 	val exception = httpResult.getException() // 直接获取失败的异常，如SocketTimeoutException, ConnectionTimeOutException
 
 	
-	// 进行文件下载
+// 进行文件下载
 	val downloadUrl = "https://www.baidu.com/pic/girl.png"
 
 	// 请求参数配置跟发起普通请求一样的
@@ -102,4 +102,4 @@ implementation 'com.nick.common:easyhttp:1.1.2'
 
 5、cookie和缓存的位置配置尚未接入，后续会陆续完善；
 
-5、更多详情可实际使用时查看源码可得知；
+6、更多详情可实际使用时查看源码可得知；
