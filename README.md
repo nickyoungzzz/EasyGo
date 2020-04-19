@@ -102,4 +102,4 @@ implementation 'com.nick.common:easyhttp:1.1.2'
 
 5、cookie和缓存的位置配置尚未接入，后续会陆续完善；
 
-5、更多详情可实际使用时查看源码可得知；
+6、更多详情可实际使用时查看源码可得知；
