@@ -14,7 +14,7 @@
 
 5、分层设计。请求数据装载层、网络请求层、数据解析层分离；
 
-6、网络层设计统一的接口，目前已内置OkHttp，HttpsUrlConnection，可实现IHttpHandler自定义其他网络框架作为网络请求层；
+6、网络层设计统一的接口，目前已内置OkHttp，HttpsUrlConnection，可实现IHttpHandler使用其他网络框架作为请求层；
 
 7、可在全局配置网络请求层的Handler，也可为每个请求单独配置请求层的Handler；
 
