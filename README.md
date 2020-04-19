@@ -1,6 +1,6 @@
 # EasyHttp
 #### 简介：
-基于Kotlin、OkHttp、HttpsUrlConnection简单整合的Http链式网络请求框架。
+基于Kotlin、OkHttp、HttpsUrlConnection简单整合的Http链式请求框架。
 #### 特性：
 1、支持restful风格api接口请求，支持get、post、put、delete、head、patch请求方式；
 
@@ -98,6 +98,8 @@ implementation 'com.nick.common:easyhttp:1.1.2'
 
 3、文件下载最终需在回调中进行，回调方法中包含下载进度的信息；
 
-4、该库为纯Java Library，不受Android环境限制，可在任意Java/Kotlin开发环境使用；
+4、该库为纯Java Library，不受Android开发环境限制，可在任意Java/Kotlin开发环境使用，调用方式有所不同；
+
+5、cookie和缓存的位置配置尚未接入，后续会陆续完善；
 
 5、更多详情可实际使用时查看源码可得知；
