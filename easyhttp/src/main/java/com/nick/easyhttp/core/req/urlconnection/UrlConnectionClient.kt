@@ -4,9 +4,15 @@ import com.nick.easyhttp.core.ReqMethod
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.util.SslHelper
-import java.io.*
+import java.io.DataOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
 import java.lang.reflect.Method
-import java.net.*
+import java.net.HttpURLConnection
+import java.net.InetAddress
+import java.net.Proxy
+import java.net.URL
 import java.nio.charset.Charset
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
@@ -110,45 +116,6 @@ class UrlConnectionClient constructor(builder: Builder) {
 		connection.hostnameVerifier = this.hostnameVerifier
 		connection.sslSocketFactory = connection.sslSocketFactory
 		connection.addRequestProperty("accept-encoding", "gzip, deflate, br")
-		ResponseCache.setDefault(object : ResponseCache() {
-
-			private val mCache = LinkedHashMap<URI, CacheResponse>()
-
-			private val maxCacheSize = 10
-
-			override fun put(uri: URI, conn: URLConnection): CacheRequest {
-				if (mCache.size >= maxCacheSize) {
-					mCache.entries.iterator().remove()
-				}
-				val cacheRequest = object : CacheRequest() {
-
-					override fun getBody(): OutputStream {
-						return ByteArrayOutputStream()
-					}
-
-					override fun abort() {
-					}
-				}
-				val cacheResponse = object : CacheResponse() {
-					override fun getHeaders(): MutableMap<String, MutableList<String>> {
-						return conn.headerFields
-					}
-
-					override fun getBody(): InputStream {
-						return conn.getInputStream()
-					}
-				}
-				mCache[uri] = cacheResponse
-				return cacheRequest
-			}
-
-			override fun get(uri: URI, rqstMethod: String?, rqstHeaders: MutableMap<String, MutableList<String>>?): CacheResponse? {
-				if (rqstMethod == "GET") {
-					return mCache[uri]
-				}
-				return null
-			}
-		})
 		when (urlConnectionReq.reqMethod) {
 			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> connection.doOutput = false
 			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> {

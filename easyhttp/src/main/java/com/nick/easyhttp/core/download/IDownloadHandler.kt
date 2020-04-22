@@ -9,4 +9,9 @@ interface IDownloadHandler {
 	)
 
 	fun cancel()
+
+	companion object {
+		@JvmField
+		val OKIO_DOWNLOADHANDLER = OkIoDownHandler()
+	}
 }

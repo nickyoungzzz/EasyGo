@@ -1,9 +1,8 @@
 package com.nick.easyhttp.config
 
+import com.nick.easyhttp.core.cookie.IHttpCookieHandler
 import com.nick.easyhttp.core.download.IDownloadHandler
-import com.nick.easyhttp.core.download.OkIoDownHandler
 import com.nick.easyhttp.core.req.IHttpHandler
-import com.nick.easyhttp.core.req.okhttp.OkHttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.util.SslHelper
@@ -26,23 +25,29 @@ class HttpConfig internal constructor(builder: Builder) {
 	var writeTimeOut = builder.writeTimeOut
 	var interceptor = builder.interceptor
 	var dns = builder.dns
+	var httpCookieHandler = builder.httpCookieHandler
 
 	constructor() : this(Builder())
 
 	fun newBuilder() = Builder(this)
 
+	companion object {
+		private const val TIMEOUT = 15000L
+	}
+
 	class Builder constructor() {
 		internal var proxy: Proxy = Proxy.NO_PROXY
-		internal var httpHandler: IHttpHandler = OkHttpHandler()
+		internal var httpHandler: IHttpHandler = IHttpHandler.OK_HTTP_HANDLER
 		internal var hostNameVerifier: HostnameVerifier = SslHelper.getHostnameVerifier()
 		internal var sslSocketFactory: SSLSocketFactory = SslHelper.getSSLSocketFactory()
 		internal var x509TrustManager: X509TrustManager = SslHelper.getTrustManager()
-		internal var downloadHandler: IDownloadHandler = OkIoDownHandler()
-		internal var connectTimeOut: Long = 15000L
-		internal var readTimeOut: Long = 15000L
-		internal var writeTimeOut: Long = 15000L
+		internal var downloadHandler: IDownloadHandler = IDownloadHandler.OKIO_DOWNLOADHANDLER
+		internal var connectTimeOut: Long = TIMEOUT
+		internal var readTimeOut: Long = TIMEOUT
+		internal var writeTimeOut: Long = TIMEOUT
 		internal var interceptor = fun(_: HttpReq, httpResp: HttpResp) = httpResp
 		internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
+		internal var httpCookieHandler = IHttpCookieHandler.NO_COOKIE
 
 		constructor(httpConfig: HttpConfig) : this() {
 			this.proxy = httpConfig.proxy
@@ -79,6 +84,8 @@ class HttpConfig internal constructor(builder: Builder) {
 		fun interceptor(interceptor: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) = apply { this.interceptor = interceptor }
 
 		fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
+
+		fun httpCookieHandler(httpCookieHandler: IHttpCookieHandler) = apply { this.httpCookieHandler = httpCookieHandler }
 
 		fun build() = HttpConfig(this)
 	}
