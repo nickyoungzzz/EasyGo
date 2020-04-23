@@ -22,7 +22,7 @@
 
 ### 一、添加依赖 
 ```3
-implementation 'com.nick.common:easyhttp:1.1.3'
+implementation 'com.nick.common:easyhttp:1.1.4'
 ```
 ### 二、使用方法
 #### 1、全局配置
