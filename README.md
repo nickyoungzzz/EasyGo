@@ -47,6 +47,22 @@ implementation 'com.nick.common:easyhttp:1.1.3'
 ```
 #### 2、发送请求
 ```
+// 请求的数据装载
+	val url = "https://www.baidu.com"
+	url.get() // 请求方式，如post、postForm
+		.addQuery("key1", "value1") // 添加查询1
+		.addQuery("key2", "value2") // 添加查询2
+		.addHeader("Content-Type", "application/json") // 设置Header
+		.setHttpHandler(IHttpHandler.OK_HTTP_HANDLER) // 设置HttpHandler
+		.addJsonString("{\"name\":\"lisi\", \"age\": 10}") // 添加json数据请求体
+		.addField("account", "123456") // 添加表单数据
+		.isMultiPart() // 是否为多请求体
+		.intercept({ httpReq: HttpReq -> httpReq }, // 请求之前的拦截
+			{ httpReq: HttpReq, httpResp: HttpResp -> httpResp } // 请求之后的拦截
+		)
+		.tag("req") // 添加请求的tag
+```		
+```
 // 发起普通请求
 	val httpResult: HttpResult = request.request()
 
