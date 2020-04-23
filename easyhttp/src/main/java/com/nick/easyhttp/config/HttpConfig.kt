@@ -33,6 +33,7 @@ class HttpConfig internal constructor(builder: Builder) {
 
 	companion object {
 		private const val TIMEOUT = 15000L
+		val DEFAULT_CONFIG = HttpConfig()
 	}
 
 	class Builder constructor() {
@@ -41,7 +42,7 @@ class HttpConfig internal constructor(builder: Builder) {
 		internal var hostNameVerifier: HostnameVerifier = SslHelper.getHostnameVerifier()
 		internal var sslSocketFactory: SSLSocketFactory = SslHelper.getSSLSocketFactory()
 		internal var x509TrustManager: X509TrustManager = SslHelper.getTrustManager()
-		internal var downloadHandler: IDownloadHandler = IDownloadHandler.OKIO_DOWNLOADHANDLER
+		internal var downloadHandler: IDownloadHandler = IDownloadHandler.OKIO_DOWNLOAD_HANDLER
 		internal var connectTimeOut: Long = TIMEOUT
 		internal var readTimeOut: Long = TIMEOUT
 		internal var writeTimeOut: Long = TIMEOUT

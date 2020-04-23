@@ -14,7 +14,7 @@ object EasyHttp {
 	var urlConnectionClient: UrlConnectionClient = UrlConnectionClient()
 		private set
 
-	var httpConfig: HttpConfig = HttpConfig()
+	var httpConfig: HttpConfig = HttpConfig.DEFAULT_CONFIG
 		private set
 
 	private lateinit var cookieMap: LinkedHashMap<URI, List<HttpHandlerCookie>>
