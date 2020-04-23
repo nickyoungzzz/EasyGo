@@ -2,15 +2,19 @@ package com.nick.easyhttp.core.req.urlconnection
 
 import com.nick.easyhttp.config.EasyHttp
 import com.nick.easyhttp.core.req.IHttpHandler
+import com.nick.easyhttp.inject.DaggerHttpHandlerComponent
+import com.nick.easyhttp.inject.HttpHandlerModule
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
+import javax.inject.Inject
 
 class UrlConnectionHandler : IHttpHandler {
 
-	private val urlConnectionClient: UrlConnectionClient = EasyHttp.urlConnectionClient
+	@Inject
+	lateinit var urlConnectionClient: UrlConnectionClient
 
 	override fun execute(httpReq: HttpReq): HttpResp {
-
+		DaggerHttpHandlerComponent.builder().httpHandlerModule(HttpHandlerModule(EasyHttp.httpConfig)).build().inject(this)
 		val urlConnectionReq = UrlConnectionReq.Builder()
 			.reqMethod(httpReq.reqMethod).reqTag(httpReq.reqTag).url(httpReq.url)
 			.asDownload(httpReq.asDownload).isMultiPart(httpReq.isMultiPart)

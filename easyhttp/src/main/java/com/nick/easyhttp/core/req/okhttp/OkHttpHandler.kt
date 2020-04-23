@@ -3,6 +3,8 @@ package com.nick.easyhttp.core.req.okhttp
 import com.nick.easyhttp.config.EasyHttp
 import com.nick.easyhttp.core.ReqMethod
 import com.nick.easyhttp.core.req.IHttpHandler
+import com.nick.easyhttp.inject.DaggerHttpHandlerComponent
+import com.nick.easyhttp.inject.HttpHandlerModule
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import okhttp3.*
@@ -12,14 +14,17 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.IOException
+import javax.inject.Inject
 
 class OkHttpHandler : IHttpHandler {
 
 	private lateinit var call: Call
-	private val okHttpClient: OkHttpClient = EasyHttp.okHttpClient
+
+	@Inject
+	lateinit var okHttpClient: OkHttpClient
 
 	override fun execute(httpReq: HttpReq): HttpResp {
-
+		DaggerHttpHandlerComponent.builder().httpHandlerModule(HttpHandlerModule(EasyHttp.httpConfig)).build().inject(this)
 		call = okHttpClient.newCall(request(httpReq))
 		val httpRespBuilder = HttpResp.Builder()
 		try {
