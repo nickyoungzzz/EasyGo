@@ -6,7 +6,8 @@ interface IHttpCookieHandler {
 
 	fun shouldSaveCookie(uri: URI, cookie: HttpHandlerCookie): Boolean
 	fun useCookieForRequest(uri: URI): Boolean
-	fun maxCookieCount(uri: URI): Int
+	fun maxCookieCount(): Int
+	fun eachUriCookieCount(uri: URI): Int
 
 	companion object {
 
@@ -21,7 +22,11 @@ interface IHttpCookieHandler {
 				return false
 			}
 
-			override fun maxCookieCount(uri: URI): Int {
+			override fun maxCookieCount(): Int {
+				return MAX_COOKIE_COUNT
+			}
+
+			override fun eachUriCookieCount(uri: URI): Int {
 				return MAX_COOKIE_COUNT
 			}
 		}

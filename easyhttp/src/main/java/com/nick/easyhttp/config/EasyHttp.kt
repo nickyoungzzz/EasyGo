@@ -28,6 +28,12 @@ object EasyHttp {
 
 		this.httpConfig = config
 
+        cookieMap = object : LinkedHashMap<URI, List<HttpHandlerCookie>>() {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<URI, List<HttpHandlerCookie>>?): Boolean {
+                return size >= config.httpCookieHandler.maxCookieCount()
+            }
+        }
+
 		okHttpClient = okHttpClient.newBuilder().proxy(config.proxy)
 			.readTimeout(config.readTimeOut, TimeUnit.MILLISECONDS)
 			.connectTimeout(config.connectTimeout, TimeUnit.MILLISECONDS)
@@ -67,12 +73,12 @@ object EasyHttp {
 							.build()
 					}.filter { httpHandlerCookie -> cookieHandler.shouldSaveCookie(uri, httpHandlerCookie) }
 					synchronized(EasyHttp::class) {
-						cookieMap = object : LinkedHashMap<URI, List<HttpHandlerCookie>>() {
-							override fun removeEldestEntry(eldest: MutableMap.MutableEntry<URI, List<HttpHandlerCookie>>?): Boolean {
-								return size >= cookieHandler.maxCookieCount(uri)
-							}
-						}
-						cookieMap[uri] = httpHandlerCookies
+						cookieMap[uri] = httpHandlerCookies.apply {
+                            val eachUriCookieCount = cookieHandler.eachUriCookieCount(uri)
+                            if (this.size >= eachUriCookieCount) {
+                                subList(this.size - eachUriCookieCount, this.size)
+                            }
+                        }
 					}
 				}
 			})
@@ -97,16 +103,16 @@ object EasyHttp {
 
 			override fun add(uri: URI, cookie: HttpCookie) {
 				val httpHandlerCookie = httpCookie2HttpHandlerCookie(cookie)
+                val eachUriCookieCount = config.httpCookieHandler.eachUriCookieCount(uri)
 				synchronized(EasyHttp::class) {
 					if (cookieMap.containsKey(uri)) {
-						cookieMap[uri]?.toMutableList()?.add(httpHandlerCookie)
+                        val httpCookieList = cookieMap[uri]?.toMutableList() ?: arrayListOf()
+                        httpCookieList.add(httpHandlerCookie)
+                        if (httpCookieList.size >= eachUriCookieCount) {
+                            httpCookieList.subList(httpCookieList.size - eachUriCookieCount, httpCookieList.size)
+                        }
 					} else {
-						cookieMap = object : LinkedHashMap<URI, List<HttpHandlerCookie>>() {
-							override fun removeEldestEntry(eldest: MutableMap.MutableEntry<URI, List<HttpHandlerCookie>>?): Boolean {
-								return size >= config.httpCookieHandler.maxCookieCount(uri)
-							}
-						}
-						val httpCookieList = ArrayList<HttpHandlerCookie>()
+						val httpCookieList = ArrayList<HttpHandlerCookie>(eachUriCookieCount)
 						httpCookieList.add(httpHandlerCookie)
 						cookieMap[uri] = httpCookieList
 					}
