@@ -42,7 +42,7 @@ implementation 'com.nick.common:easyhttp:1.1.3'
 		}} // 添加全局拦截器，在请求之后，并返回HttpResp
 		.build()
 	
-	// 配置全局的HttpConfig，该行代码只可执行一次，可在项目初始化时执行。如果不配置，则使用默认该库中的默认配置。
+	// 配置全局的HttpConfig，该行代码只可执行一次，可在项目初始化时执行。
 	EasyHttp.init(httpConfig)
 ```
 #### 2、发送请求

@@ -8,13 +8,13 @@ import java.util.concurrent.TimeUnit
 
 object EasyHttp {
 
-	var okHttpClient: OkHttpClient = OkHttpClient()
+	lateinit var okHttpClient: OkHttpClient
 		private set
 
-	var urlConnectionClient: UrlConnectionClient = UrlConnectionClient()
+	lateinit var urlConnectionClient: UrlConnectionClient
 		private set
 
-	var httpConfig: HttpConfig = HttpConfig.DEFAULT_CONFIG
+	lateinit var httpConfig: HttpConfig
 		private set
 
 	private lateinit var cookieMap: LinkedHashMap<URI, List<HttpHandlerCookie>>
@@ -28,13 +28,13 @@ object EasyHttp {
 
 		this.httpConfig = config
 
-        cookieMap = object : LinkedHashMap<URI, List<HttpHandlerCookie>>() {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<URI, List<HttpHandlerCookie>>?): Boolean {
-                return size >= config.httpCookieHandler.maxCookieCount()
-            }
-        }
+		cookieMap = object : LinkedHashMap<URI, List<HttpHandlerCookie>>() {
+			override fun removeEldestEntry(eldest: MutableMap.MutableEntry<URI, List<HttpHandlerCookie>>?): Boolean {
+				return size >= config.httpCookieHandler.maxCookieCount()
+			}
+		}
 
-		okHttpClient = okHttpClient.newBuilder().proxy(config.proxy)
+		okHttpClient = OkHttpClient.Builder().proxy(config.proxy)
 			.readTimeout(config.readTimeOut, TimeUnit.MILLISECONDS)
 			.connectTimeout(config.connectTimeout, TimeUnit.MILLISECONDS)
 			.hostnameVerifier(config.hostnameVerifier)
@@ -74,17 +74,17 @@ object EasyHttp {
 					}.filter { httpHandlerCookie -> cookieHandler.shouldSaveCookie(uri, httpHandlerCookie) }
 					synchronized(EasyHttp::class) {
 						cookieMap[uri] = httpHandlerCookies.apply {
-                            val eachUriCookieCount = cookieHandler.eachUriCookieCount(uri)
-                            if (this.size >= eachUriCookieCount) {
-                                subList(this.size - eachUriCookieCount, this.size)
-                            }
-                        }
+							val eachUriCookieCount = cookieHandler.eachUriCookieCount(uri)
+							if (this.size >= eachUriCookieCount) {
+								subList(this.size - eachUriCookieCount, this.size)
+							}
+						}
 					}
 				}
 			})
 			.build()
 
-		urlConnectionClient = urlConnectionClient.newBuilder().proxy(config.proxy)
+		urlConnectionClient = UrlConnectionClient.Builder().proxy(config.proxy)
 			.readTimeOut(config.readTimeOut)
 			.connectTimeOut(config.connectTimeout)
 			.hostNameVerifier(config.hostnameVerifier)
@@ -103,14 +103,14 @@ object EasyHttp {
 
 			override fun add(uri: URI, cookie: HttpCookie) {
 				val httpHandlerCookie = httpCookie2HttpHandlerCookie(cookie)
-                val eachUriCookieCount = config.httpCookieHandler.eachUriCookieCount(uri)
+				val eachUriCookieCount = config.httpCookieHandler.eachUriCookieCount(uri)
 				synchronized(EasyHttp::class) {
 					if (cookieMap.containsKey(uri)) {
-                        val httpCookieList = cookieMap[uri]?.toMutableList() ?: arrayListOf()
-                        httpCookieList.add(httpHandlerCookie)
-                        if (httpCookieList.size >= eachUriCookieCount) {
-                            httpCookieList.subList(httpCookieList.size - eachUriCookieCount, httpCookieList.size)
-                        }
+						val httpCookieList = cookieMap[uri]?.toMutableList() ?: arrayListOf()
+						httpCookieList.add(httpHandlerCookie)
+						if (httpCookieList.size >= eachUriCookieCount) {
+							httpCookieList.subList(httpCookieList.size - eachUriCookieCount, httpCookieList.size)
+						}
 					} else {
 						val httpCookieList = ArrayList<HttpHandlerCookie>(eachUriCookieCount)
 						httpCookieList.add(httpHandlerCookie)

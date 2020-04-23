@@ -7,8 +7,6 @@ import com.nick.easyhttp.result.HttpResp
 
 class UrlConnectionHandler : IHttpHandler {
 
-	private val urlConnectionClient: UrlConnectionClient = EasyHttp.urlConnectionClient
-
 	override fun execute(httpReq: HttpReq): HttpResp {
 		val urlConnectionReq = UrlConnectionReq.Builder()
 			.reqMethod(httpReq.reqMethod).reqTag(httpReq.reqTag).url(httpReq.url)
@@ -17,7 +15,7 @@ class UrlConnectionHandler : IHttpHandler {
 			.headerMap(httpReq.headerMap).queryMap(httpReq.queryMap)
 			.multipartBody(httpReq.multipartBody).build()
 
-		val urlConnectionResp = urlConnectionClient.proceed(urlConnectionReq)
+		val urlConnectionResp = EasyHttp.urlConnectionClient.proceed(urlConnectionReq)
 		return HttpResp.Builder().code(urlConnectionResp.code).contentLength(urlConnectionResp.contentLength)
 			.isSuccessful(urlConnectionResp.isSuccessful).exception(urlConnectionResp.exception)
 			.byteData(urlConnectionResp.inputStream).headers(urlConnectionResp.headers)
@@ -25,6 +23,6 @@ class UrlConnectionHandler : IHttpHandler {
 	}
 
 	override fun cancel() {
-		urlConnectionClient.cancel()
+		EasyHttp.urlConnectionClient.cancel()
 	}
 }

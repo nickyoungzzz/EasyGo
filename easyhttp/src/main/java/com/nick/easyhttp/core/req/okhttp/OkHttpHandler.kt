@@ -17,10 +17,8 @@ class OkHttpHandler : IHttpHandler {
 
 	private lateinit var call: Call
 
-	private val okHttpClient: OkHttpClient = EasyHttp.okHttpClient
-
 	override fun execute(httpReq: HttpReq): HttpResp {
-		call = okHttpClient.newCall(request(httpReq))
+		call = EasyHttp.okHttpClient.newCall(request(httpReq))
 		val httpRespBuilder = HttpResp.Builder()
 		try {
 			val response = call.execute()
