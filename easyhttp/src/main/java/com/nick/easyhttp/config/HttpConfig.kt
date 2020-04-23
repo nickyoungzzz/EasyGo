@@ -33,6 +33,7 @@ class HttpConfig internal constructor(builder: Builder) {
 
 	companion object {
 		private const val TIMEOUT = 15000L
+		val DEFAULT_CONFIG = HttpConfig()
 	}
 
 	class Builder constructor() {
