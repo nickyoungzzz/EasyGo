@@ -90,7 +90,6 @@ object EasyHttp {
 			.hostNameVerifier(config.hostnameVerifier)
 			.sslSocketFactory(config.sslSocketFactory)
 			.x509TrustManager(config.x509TrustManager)
-			.interceptor(config.interceptor)
 			.dns(config.dns)
 			.build()
 

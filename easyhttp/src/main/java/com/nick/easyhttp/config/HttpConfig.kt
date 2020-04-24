@@ -23,7 +23,8 @@ class HttpConfig internal constructor(builder: Builder) {
 	var connectTimeout = builder.connectTimeOut
 	var readTimeOut = builder.readTimeOut
 	var writeTimeOut = builder.writeTimeOut
-	var interceptor = builder.interceptor
+	var before = builder.before
+	var after = builder.after
 	var dns = builder.dns
 	var httpCookieHandler = builder.httpCookieHandler
 
@@ -46,7 +47,8 @@ class HttpConfig internal constructor(builder: Builder) {
 		internal var connectTimeOut: Long = TIMEOUT
 		internal var readTimeOut: Long = TIMEOUT
 		internal var writeTimeOut: Long = TIMEOUT
-		internal var interceptor = fun(_: HttpReq, httpResp: HttpResp) = httpResp
+		internal var before = fun(httpReq: HttpReq) = beforeReq(httpReq)
+		internal var after = fun(httpReq: HttpReq, httpResp: HttpResp) = afterReq(httpReq, httpResp)
 		internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
 		internal var httpCookieHandler = IHttpCookieHandler.NO_COOKIE
 
@@ -60,9 +62,14 @@ class HttpConfig internal constructor(builder: Builder) {
 			this.connectTimeOut = httpConfig.connectTimeout
 			this.readTimeOut = httpConfig.readTimeOut
 			this.writeTimeOut = httpConfig.writeTimeOut
-			this.interceptor = httpConfig.interceptor
+			this.before = httpConfig.before
+			this.after = httpConfig.after
 			this.dns = httpConfig.dns
 		}
+
+		private var beforeReq = fun (httpReq: HttpReq) = httpReq
+
+		private var afterReq = fun (_: HttpReq, httpResp: HttpResp) = httpResp
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
 
@@ -82,7 +89,10 @@ class HttpConfig internal constructor(builder: Builder) {
 
 		fun writeTimeOut(writeTimeOut: Long) = apply { this.writeTimeOut = writeTimeOut }
 
-		fun interceptor(interceptor: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) = apply { this.interceptor = interceptor }
+		fun intercept(before:(httpReq:HttpReq) -> HttpReq = beforeReq, after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp = afterReq) = apply {
+			this.before = before
+			this.after = after
+		}
 
 		fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
 

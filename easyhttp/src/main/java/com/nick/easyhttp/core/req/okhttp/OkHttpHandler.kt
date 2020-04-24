@@ -18,7 +18,7 @@ class OkHttpHandler : IHttpHandler {
 	private lateinit var call: Call
 
 	override fun execute(httpReq: HttpReq): HttpResp {
-		call = EasyHttp.okHttpClient.newCall(request(httpReq))
+		call = EasyHttp.okHttpClient.newCall(proceed(httpReq))
 		val httpRespBuilder = HttpResp.Builder()
 		try {
 			val response = call.execute()
@@ -42,7 +42,7 @@ class OkHttpHandler : IHttpHandler {
 		}
 	}
 
-	private fun request(httpReq: HttpReq): Request {
+	private fun proceed(httpReq: HttpReq): Request {
 		val jsonBody = httpReq.jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())
 		val body = if (httpReq.isMultiPart) multiPart(httpReq.multipartBody) else form(httpReq.fieldMap)
 		return Request.Builder().tag(httpReq.reqTag).apply {

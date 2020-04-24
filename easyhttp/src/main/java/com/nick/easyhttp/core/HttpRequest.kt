@@ -133,7 +133,8 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	}
 
 	fun request(): HttpResult {
-		val httpResp = httpConfig.interceptor(httpReq(), httpHandler.execute(httpReq()))
+		val httpReq = httpConfig.before(httpReq())
+		val httpResp = httpConfig.after(httpReq, httpHandler.execute(httpReq))
 		val status = if (httpResp.exception != null) HttpStatus.EXCEPTION
 		else (if (httpResp.isSuccessful) HttpStatus.SUCCESS else HttpStatus.ERROR)
 		return HttpResult.Builder().code(httpResp.code)

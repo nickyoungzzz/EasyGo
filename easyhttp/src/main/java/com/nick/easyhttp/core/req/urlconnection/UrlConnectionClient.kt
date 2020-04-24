@@ -19,7 +19,7 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.X509TrustManager
 
-class UrlConnectionClient constructor(builder: Builder) {
+internal class UrlConnectionClient constructor(builder: Builder) {
 
 	var proxy = builder.proxy
 	var hostnameVerifier = builder.hostNameVerifier
@@ -28,12 +28,15 @@ class UrlConnectionClient constructor(builder: Builder) {
 	var connectTimeout = builder.connectTimeOut
 	var readTimeOut = builder.readTimeOut
 	var writeTimeOut = builder.writeTimeOut
-	var interceptor = builder.interceptor
 	var dns = builder.dns
 
 	constructor() : this(Builder())
 
 	fun newBuilder() = Builder(this)
+
+	companion object {
+		private const val TIMEOUT = 15000L
+	}
 
 	class Builder constructor() {
 
@@ -41,10 +44,9 @@ class UrlConnectionClient constructor(builder: Builder) {
 		internal var hostNameVerifier: HostnameVerifier = SslHelper.getHostnameVerifier()
 		internal var sslSocketFactory: SSLSocketFactory = SslHelper.getSSLSocketFactory()
 		internal var x509TrustManager: X509TrustManager = SslHelper.getTrustManager()
-		internal var connectTimeOut: Long = 15000L
-		internal var readTimeOut: Long = 15000L
-		internal var writeTimeOut: Long = 15000L
-		internal var interceptor = fun(_: HttpReq, httpResp: HttpResp) = httpResp
+		internal var connectTimeOut: Long = TIMEOUT
+		internal var readTimeOut: Long = TIMEOUT
+		internal var writeTimeOut: Long = TIMEOUT
 		internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
 
 		constructor(urlConnectionClient: UrlConnectionClient) : this() {
@@ -55,9 +57,12 @@ class UrlConnectionClient constructor(builder: Builder) {
 			this.connectTimeOut = urlConnectionClient.connectTimeout
 			this.readTimeOut = urlConnectionClient.readTimeOut
 			this.writeTimeOut = urlConnectionClient.writeTimeOut
-			this.interceptor = urlConnectionClient.interceptor
 			this.dns = urlConnectionClient.dns
 		}
+
+		private var beforeReq = fun (httpReq: HttpReq) = httpReq
+
+		private var afterReq = fun (_: HttpReq, httpResp: HttpResp) = httpResp
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
 
@@ -72,8 +77,6 @@ class UrlConnectionClient constructor(builder: Builder) {
 		fun readTimeOut(readTimeOut: Long) = apply { this.readTimeOut = readTimeOut }
 
 		fun writeTimeOut(writeTimeOut: Long) = apply { this.writeTimeOut = writeTimeOut }
-
-		fun interceptor(interceptor: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) = apply { this.interceptor = interceptor }
 
 		fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
 
@@ -106,7 +109,6 @@ class UrlConnectionClient constructor(builder: Builder) {
 			stringBuilder.append("$key=$value&")
 		}
 		val url = URL("${urlConnectionReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
-		makeDns(url.host, this.dns(url.host))
 		stringBuilder.clear()
 		connection = url.openConnection(this.proxy) as HttpsURLConnection
 		connection.requestMethod = urlConnectionReq.reqMethod.method
@@ -158,6 +160,7 @@ class UrlConnectionClient constructor(builder: Builder) {
 		}
 		val urlConnectionRespBuilder = UrlConnectionResp.Builder()
 		try {
+			makeDns(url.host, this.dns(url.host))
 			connection.connect()
 			val success = connection.responseCode in HttpURLConnection.HTTP_OK until HttpURLConnection.HTTP_MULT_CHOICE
 			val inputStream = if (success) connection.inputStream else connection.errorStream
