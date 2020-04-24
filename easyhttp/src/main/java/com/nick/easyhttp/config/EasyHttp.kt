@@ -8,13 +8,13 @@ import java.util.concurrent.TimeUnit
 
 object EasyHttp {
 
-	lateinit var okHttpClient: OkHttpClient
+	internal lateinit var okHttpClient: OkHttpClient
 		private set
 
-	lateinit var urlConnectionClient: UrlConnectionClient
+	internal lateinit var urlConnectionClient: UrlConnectionClient
 		private set
 
-	lateinit var httpConfig: HttpConfig
+	internal lateinit var httpConfig: HttpConfig
 		private set
 
 	private lateinit var cookieMap: LinkedHashMap<URI, List<HttpHandlerCookie>>
@@ -22,7 +22,7 @@ object EasyHttp {
 	@Volatile private var hasConfig = false
 
 	@JvmStatic
-	@Synchronized fun init(config: HttpConfig) {
+	@Synchronized fun init(config: HttpConfig = HttpConfig.DEFAULT_CONFIG) {
 
 		if (hasConfig) throw RuntimeException("Do not config again!!!")
 
@@ -98,7 +98,7 @@ object EasyHttp {
 
 			override fun removeAll(): Boolean {
 				cookieMap.clear()
-				return cookieMap.size == 0
+				return cookieMap.isEmpty()
 			}
 
 			override fun add(uri: URI, cookie: HttpCookie) {
