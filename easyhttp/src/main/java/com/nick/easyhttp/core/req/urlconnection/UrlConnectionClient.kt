@@ -60,9 +60,9 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 			this.dns = urlConnectionClient.dns
 		}
 
-		private var beforeReq = fun (httpReq: HttpReq) = httpReq
+		private var beforeReq = fun(httpReq: HttpReq) = httpReq
 
-		private var afterReq = fun (_: HttpReq, httpResp: HttpResp) = httpResp
+		private var afterReq = fun(_: HttpReq, httpResp: HttpResp) = httpResp
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
 
@@ -117,6 +117,7 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 		connection.doOutput = true
 		connection.hostnameVerifier = this.hostnameVerifier
 		connection.sslSocketFactory = connection.sslSocketFactory
+		urlConnectionReq.headerMap.forEach { (key, value) -> connection.addRequestProperty(key, value) }
 		connection.addRequestProperty("accept-encoding", "gzip, deflate, br")
 		when (urlConnectionReq.reqMethod) {
 			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> connection.doOutput = false
