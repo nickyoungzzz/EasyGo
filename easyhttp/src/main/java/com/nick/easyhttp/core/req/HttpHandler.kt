@@ -5,15 +5,15 @@ import com.nick.easyhttp.core.req.urlconnection.UrlConnectionHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 
-interface IHttpHandler {
+interface HttpHandler {
 	fun execute(httpReq: HttpReq): HttpResp
 	fun cancel()
 
 	companion object {
 		@JvmField
-		val OK_HTTP_HANDLER: IHttpHandler = OkHttpHandler()
+		val OK_HTTP_HANDLER: HttpHandler = OkHttpHandler()
 
 		@JvmField
-		val URL_CONNECTION_HANDLER: IHttpHandler = UrlConnectionHandler()
+		val URL_CONNECTION_HANDLER: HttpHandler = UrlConnectionHandler()
 	}
 }

@@ -2,7 +2,7 @@ package com.nick.easyhttp.core.req.okhttp
 
 import com.nick.easyhttp.config.EasyHttp
 import com.nick.easyhttp.core.ReqMethod
-import com.nick.easyhttp.core.req.IHttpHandler
+import com.nick.easyhttp.core.req.HttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import okhttp3.*
@@ -13,7 +13,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.IOException
 
-class OkHttpHandler : IHttpHandler {
+class OkHttpHandler : HttpHandler {
 
 	private lateinit var call: Call
 

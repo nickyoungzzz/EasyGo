@@ -4,8 +4,8 @@ import com.nick.easyhttp.config.EasyHttp
 import com.nick.easyhttp.config.HttpConfig
 import com.nick.easyhttp.core.download.DownloadParam
 import com.nick.easyhttp.core.download.DownloadState
-import com.nick.easyhttp.core.download.IDownloadHandler
-import com.nick.easyhttp.core.req.IHttpHandler
+import com.nick.easyhttp.core.download.DownloadHandler
+import com.nick.easyhttp.core.req.HttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.result.HttpResult
@@ -35,9 +35,9 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private var httpConfig: HttpConfig = EasyHttp.httpConfig
 
-	private var httpHandler: IHttpHandler = httpConfig.httpHandler
+	private var httpHandler: HttpHandler = httpConfig.httpHandler
 
-	private var downloadHandler: IDownloadHandler = httpConfig.downLoadHandler
+	private var downloadHandler: DownloadHandler = httpConfig.downLoadHandler
 
 	private lateinit var downloadParam: DownloadParam
 
@@ -107,7 +107,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		this.downloadParam = downloadParam
 	}
 
-	fun setHttpHandler(httpHandler: IHttpHandler) = apply {
+	fun setHttpHandler(httpHandler: HttpHandler) = apply {
 		this.httpHandler = httpHandler
 	}
 
@@ -118,10 +118,10 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	@JvmOverloads
 	fun intercept(before: (httpReq: HttpReq) -> HttpReq = beforeExecute, after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp = afterExecute) = apply {
 		this.httpHandler = Proxy.newProxyInstance(httpHandler.javaClass.classLoader, httpHandler.javaClass.interfaces,
-			HttpInvocation(httpHandler, before, after, httpReq())) as IHttpHandler
+			HttpInvocation(httpHandler, before, after, httpReq())) as HttpHandler
 	}
 
-	fun setDownloadHandler(downloadHandler: IDownloadHandler) = apply {
+	fun setDownloadHandler(downloadHandler: DownloadHandler) = apply {
 		this.downloadHandler = downloadHandler
 	}
 

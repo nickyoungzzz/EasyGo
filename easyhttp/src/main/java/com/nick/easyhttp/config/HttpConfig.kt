@@ -1,8 +1,9 @@
 package com.nick.easyhttp.config
 
-import com.nick.easyhttp.core.cookie.IHttpCookieHandler
-import com.nick.easyhttp.core.download.IDownloadHandler
-import com.nick.easyhttp.core.req.IHttpHandler
+import com.nick.easyhttp.core.cache.HttpCacheHandler
+import com.nick.easyhttp.core.cookie.HttpCookieHandler
+import com.nick.easyhttp.core.download.DownloadHandler
+import com.nick.easyhttp.core.req.HttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.util.SslHelper
@@ -27,6 +28,7 @@ class HttpConfig internal constructor(builder: Builder) {
 	var after = builder.after
 	var dns = builder.dns
 	var httpCookieHandler = builder.httpCookieHandler
+	var httpCacheHandler = builder.httpCacheHandler
 
 	constructor() : this(Builder())
 
@@ -39,18 +41,19 @@ class HttpConfig internal constructor(builder: Builder) {
 
 	class Builder constructor() {
 		internal var proxy: Proxy = Proxy.NO_PROXY
-		internal var httpHandler: IHttpHandler = IHttpHandler.OK_HTTP_HANDLER
+		internal var httpHandler: HttpHandler = HttpHandler.OK_HTTP_HANDLER
 		internal var hostNameVerifier: HostnameVerifier = SslHelper.getHostnameVerifier()
 		internal var sslSocketFactory: SSLSocketFactory = SslHelper.getSSLSocketFactory()
 		internal var x509TrustManager: X509TrustManager = SslHelper.getTrustManager()
-		internal var downloadHandler: IDownloadHandler = IDownloadHandler.OKIO_DOWNLOAD_HANDLER
+		internal var downloadHandler: DownloadHandler = DownloadHandler.OKIO_DOWNLOAD_HANDLER
 		internal var connectTimeOut: Long = TIMEOUT
 		internal var readTimeOut: Long = TIMEOUT
 		internal var writeTimeOut: Long = TIMEOUT
 		internal var before = fun(httpReq: HttpReq) = beforeReq(httpReq)
 		internal var after = fun(httpReq: HttpReq, httpResp: HttpResp) = afterReq(httpReq, httpResp)
 		internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
-		internal var httpCookieHandler = IHttpCookieHandler.NO_COOKIE
+		internal var httpCookieHandler = HttpCookieHandler.NO_COOKIE
+		internal var httpCacheHandler = HttpCacheHandler.MEMORY_CACHE
 
 		constructor(httpConfig: HttpConfig) : this() {
 			this.proxy = httpConfig.proxy
@@ -65,6 +68,8 @@ class HttpConfig internal constructor(builder: Builder) {
 			this.before = httpConfig.before
 			this.after = httpConfig.after
 			this.dns = httpConfig.dns
+			this.httpCookieHandler = httpConfig.httpCookieHandler
+			this.httpCacheHandler = httpConfig.httpCacheHandler
 		}
 
 		private var beforeReq = fun (httpReq: HttpReq) = httpReq
@@ -73,7 +78,7 @@ class HttpConfig internal constructor(builder: Builder) {
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
 
-		fun httpHandler(httpHandler: IHttpHandler) = apply { this.httpHandler = httpHandler }
+		fun httpHandler(httpHandler: HttpHandler) = apply { this.httpHandler = httpHandler }
 
 		fun hostNameVerifier(hostNameVerifier: HostnameVerifier) = apply { this.hostNameVerifier = hostNameVerifier }
 
@@ -81,7 +86,7 @@ class HttpConfig internal constructor(builder: Builder) {
 
 		fun x509TrustManager(x509TrustManager: X509TrustManager) = apply { this.x509TrustManager = x509TrustManager }
 
-		fun downloadHandler(downloadHandler: IDownloadHandler) = apply { this.downloadHandler = downloadHandler }
+		fun downloadHandler(downloadHandler: DownloadHandler) = apply { this.downloadHandler = downloadHandler }
 
 		fun connectTimeOut(connectTimeOut: Long) = apply { this.connectTimeOut = connectTimeOut }
 
@@ -96,7 +101,9 @@ class HttpConfig internal constructor(builder: Builder) {
 
 		fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
 
-		fun httpCookieHandler(httpCookieHandler: IHttpCookieHandler) = apply { this.httpCookieHandler = httpCookieHandler }
+		fun httpCookieHandler(httpCookieHandler: HttpCookieHandler) = apply { this.httpCookieHandler = httpCookieHandler }
+
+		fun httpCacheHandler(httpCacheHandler: HttpCacheHandler) = apply { this.httpCacheHandler = httpCacheHandler }
 
 		fun build() = HttpConfig(this)
 	}

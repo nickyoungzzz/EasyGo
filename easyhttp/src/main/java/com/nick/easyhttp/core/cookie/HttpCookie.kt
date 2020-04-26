@@ -1,6 +1,6 @@
 package com.nick.easyhttp.core.cookie
 
-class HttpHandlerCookie internal constructor(builder: Builder) {
+class HttpCookie internal constructor(builder: Builder) {
 
 	var name: String = builder.name
 	var value: String = builder.value
@@ -24,15 +24,15 @@ class HttpHandlerCookie internal constructor(builder: Builder) {
 		internal var maxAge: Long = 0
 		internal var whenCreated: Long = -1L
 
-		constructor(httpHandlerCookie: HttpHandlerCookie) : this() {
-			this.name = httpHandlerCookie.name
-			this.value = httpHandlerCookie.value
-			this.domain = httpHandlerCookie.domain
-			this.path = httpHandlerCookie.path
-			this.secure = httpHandlerCookie.secure
-			this.httpOnly = httpHandlerCookie.httpOnly
-			this.maxAge = httpHandlerCookie.maxAge
-			this.whenCreated = httpHandlerCookie.whenCreated
+		constructor(httpCookie: HttpCookie) : this() {
+			this.name = httpCookie.name
+			this.value = httpCookie.value
+			this.domain = httpCookie.domain
+			this.path = httpCookie.path
+			this.secure = httpCookie.secure
+			this.httpOnly = httpCookie.httpOnly
+			this.maxAge = httpCookie.maxAge
+			this.whenCreated = httpCookie.whenCreated
 		}
 
 		fun name(name: String) = apply { this.name = name }
@@ -51,6 +51,6 @@ class HttpHandlerCookie internal constructor(builder: Builder) {
 
 		fun whenCreated(whenCreated: Long) = apply { this.whenCreated = whenCreated }
 
-		fun build() = HttpHandlerCookie(this)
+		fun build() = HttpCookie(this)
 	}
 }

@@ -1,11 +1,11 @@
 package com.nick.easyhttp.core.req.urlconnection
 
 import com.nick.easyhttp.config.EasyHttp
-import com.nick.easyhttp.core.req.IHttpHandler
+import com.nick.easyhttp.core.req.HttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
 
-class UrlConnectionHandler : IHttpHandler {
+class UrlConnectionHandler : HttpHandler {
 
 	override fun execute(httpReq: HttpReq): HttpResp {
 		val urlConnectionReq = UrlConnectionReq.Builder()

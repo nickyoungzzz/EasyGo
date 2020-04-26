@@ -117,8 +117,9 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 		connection.doOutput = true
 		connection.hostnameVerifier = this.hostnameVerifier
 		connection.sslSocketFactory = connection.sslSocketFactory
-		urlConnectionReq.headerMap.forEach { (key, value) -> connection.addRequestProperty(key, value) }
-		connection.addRequestProperty("accept-encoding", "gzip, deflate, br")
+		urlConnectionReq.headerMap.apply { put("accept-encoding", "gzip, deflate, br") }.forEach { (key, value) ->
+			connection.addRequestProperty(key, value)
+		}
 		when (urlConnectionReq.reqMethod) {
 			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> connection.doOutput = false
 			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> {

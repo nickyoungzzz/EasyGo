@@ -9,3 +9,7 @@ enum class ReqMethod constructor(var method: String, var form: Boolean) {
 enum class HttpStatus {
 	SUCCESS, ERROR, EXCEPTION
 }
+
+enum class HttpCacheStrategy {
+	MEMORY_CACHE, FILE_CACHE
+}

@@ -3,7 +3,7 @@ package com.nick.easyhttp.core.download
 import okio.*
 import java.io.InputStream
 
-class OkIoDownHandler : IDownloadHandler {
+class OkIoDownHandler : DownloadHandler {
 
 	@Volatile private var isCanceled = false
 

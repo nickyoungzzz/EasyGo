@@ -2,9 +2,9 @@ package com.nick.easyhttp.core.cookie
 
 import java.net.URI
 
-interface IHttpCookieHandler {
+interface HttpCookieHandler {
 
-	fun shouldSaveCookie(uri: URI, cookie: HttpHandlerCookie): Boolean
+	fun shouldSaveCookie(uri: URI, cookie: HttpCookie): Boolean
 	fun useCookieForRequest(uri: URI): Boolean
 	fun maxCookieCount(): Int
 	fun eachUriCookieCount(uri: URI): Int
@@ -13,8 +13,8 @@ interface IHttpCookieHandler {
 
 		private const val MAX_COOKIE_COUNT = 50
 
-		val NO_COOKIE = object : IHttpCookieHandler {
-			override fun shouldSaveCookie(uri: URI, cookie: HttpHandlerCookie): Boolean {
+		val NO_COOKIE = object : HttpCookieHandler {
+			override fun shouldSaveCookie(uri: URI, cookie: HttpCookie): Boolean {
 				return false
 			}
 
