@@ -50,8 +50,8 @@ class HttpConfig internal constructor(builder: Builder) {
         internal var connectTimeOut: Long = TIMEOUT
         internal var readTimeOut: Long = TIMEOUT
         internal var writeTimeOut: Long = TIMEOUT
-        internal var before = fun(httpReq: HttpReq) = beforeReq(httpReq)
-        internal var after = fun(httpReq: HttpReq, httpResp: HttpResp) = afterReq(httpReq, httpResp)
+        internal var before = fun(httpReq: HttpReq) = httpReq
+        internal var after = fun(_: HttpReq, httpResp: HttpResp) = httpResp
         internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
         internal var httpCookieHandler = HttpCookieHandler.NO_COOKIE
         internal var httpCacheHandler = HttpCacheHandler.MEMORY_CACHE
@@ -75,10 +75,6 @@ class HttpConfig internal constructor(builder: Builder) {
             this.timeoutConfig = httpConfig.timeoutConfig
         }
 
-        private var beforeReq = fun(httpReq: HttpReq) = httpReq
-
-        private var afterReq = fun(_: HttpReq, httpResp: HttpResp) = httpResp
-
         fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
 
         fun httpHandler(httpHandler: HttpHandler) = apply { this.httpHandler = httpHandler }
@@ -97,10 +93,9 @@ class HttpConfig internal constructor(builder: Builder) {
 
         fun writeTimeOut(writeTimeOut: Long) = apply { this.writeTimeOut = writeTimeOut }
 
-        fun intercept(before: (httpReq: HttpReq) -> HttpReq = beforeReq, after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp = afterReq) = apply {
-            this.before = before
-            this.after = after
-        }
+        fun beforeSend(before: (httpReq: HttpReq) -> HttpReq) = apply { this.before = before }
+
+        fun afterReply(after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) = apply { this.after = after }
 
         fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
 

@@ -2,9 +2,9 @@ package com.nick.easyhttp.core
 
 import com.nick.easyhttp.config.EasyHttp
 import com.nick.easyhttp.config.HttpConfig
+import com.nick.easyhttp.core.download.DownloadHandler
 import com.nick.easyhttp.core.download.DownloadParam
 import com.nick.easyhttp.core.download.DownloadState
-import com.nick.easyhttp.core.download.DownloadHandler
 import com.nick.easyhttp.core.req.HttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
@@ -115,10 +115,13 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	private var afterExecute = fun(_: HttpReq, httpResp: HttpResp) = httpResp
 
-	@JvmOverloads
-	fun intercept(before: (httpReq: HttpReq) -> HttpReq = beforeExecute, after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp = afterExecute) = apply {
-		this.httpHandler = Proxy.newProxyInstance(httpHandler.javaClass.classLoader, httpHandler.javaClass.interfaces,
-			HttpInvocation(httpHandler, before, after, httpReq())) as HttpHandler
+	fun beforeSend(before: (httpReq: HttpReq) -> HttpReq) = apply { this.beforeExecute = before }
+
+	fun afterReply(after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) = apply { this.afterExecute = after }
+
+	private fun getProxyHttpHandler(): HttpHandler {
+		return Proxy.newProxyInstance(httpHandler.javaClass.classLoader, httpHandler.javaClass.interfaces,
+			HttpInvocation(httpHandler, beforeExecute, afterExecute, httpReq())) as HttpHandler
 	}
 
 	fun setDownloadHandler(downloadHandler: DownloadHandler) = apply {
@@ -134,7 +137,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 
 	fun request(): HttpResult {
 		val httpReq = httpConfig.before(httpReq())
-		val httpResp = httpConfig.after(httpReq, httpHandler.execute(httpReq))
+		val httpResp = httpConfig.after(httpReq, getProxyHttpHandler().execute(httpReq))
 		val status = if (httpResp.exception != null) HttpStatus.EXCEPTION
 		else (if (httpResp.isSuccessful) HttpStatus.SUCCESS else HttpStatus.ERROR)
 		return HttpResult.Builder().code(httpResp.code)
@@ -149,7 +152,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	fun execute(exc: (e: Throwable) -> Unit = {}, download: (downloadState: DownloadState) -> Unit = {}): HttpRequest {
 		val source = downloadParam.source
 		val range = if (downloadParam.breakPoint && source.exists()) source.length() else 0
-		val httpResp = httpHandler.execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })
+		val httpResp = getProxyHttpHandler().execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })
 		if (httpResp.isSuccessful) {
 			try {
 				downloadHandler.saveFile(httpResp.inputStream!!, downloadParam, httpResp.contentLength) { state ->
@@ -178,7 +181,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 		override fun invoke(proxy: Any?, method: Method?, args: Array<out Any>?): Any {
 			return if (method?.name == "execute") {
 				val req = before(httpReq)
-				val obj = (method as Method).invoke(any, req)
+				val obj = method.invoke(any, req)
 				after(req, obj as HttpResp)
 			} else {
 				method!!.invoke(any, args)

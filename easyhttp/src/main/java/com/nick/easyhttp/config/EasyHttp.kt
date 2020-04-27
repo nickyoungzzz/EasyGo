@@ -59,88 +59,88 @@ object EasyHttp {
         }
 
         okHttpClient = OkHttpClient.Builder().proxy(config.proxy)
-                .readTimeout(config.readTimeOut, TimeUnit.MILLISECONDS)
-                .connectTimeout(config.connectTimeout, TimeUnit.MILLISECONDS)
-                .hostnameVerifier(config.hostnameVerifier)
-                .sslSocketFactory(config.sslSocketFactory, config.x509TrustManager)
-                .dns(object : Dns {
-                    override fun lookup(hostname: String): List<InetAddress> {
-                        return httpConfig.dns(hostname).toList()
+            .readTimeout(config.readTimeOut, TimeUnit.MILLISECONDS)
+            .connectTimeout(config.connectTimeout, TimeUnit.MILLISECONDS)
+            .hostnameVerifier(config.hostnameVerifier)
+            .sslSocketFactory(config.sslSocketFactory, config.x509TrustManager)
+            .dns(object : Dns {
+                override fun lookup(hostname: String): List<InetAddress> {
+                    return httpConfig.dns(hostname).toList()
+                }
+            })
+            .cookieJar(object : CookieJar {
+                val cookieHandler = config.httpCookieHandler
+                override fun loadForRequest(url: HttpUrl): List<Cookie> {
+                    return if (!cookieHandler.useCookieForRequest(url.toUri())) emptyList() else run {
+                        val cookieList = cookieMap[url.toUri()] ?: emptyList()
+                        cookieList.map { httpHandlerCookie ->
+                            Cookie.Builder().domain(httpHandlerCookie.domain).name(httpHandlerCookie.name)
+                                .value(httpHandlerCookie.value).apply { if (httpHandlerCookie.secure) secure() }
+                                .apply { if (httpHandlerCookie.httpOnly) httpOnly() }
+                                .path(httpHandlerCookie.path)
+                                .expiresAt(httpHandlerCookie.whenCreated + httpHandlerCookie.maxAge)
+                                .hostOnlyDomain(httpHandlerCookie.domain)
+                                .build()
+                        }.filter { cookie -> cookie.expiresAt - System.currentTimeMillis() > 0 }
                     }
-                })
-                .cookieJar(object : CookieJar {
-                    val cookieHandler = config.httpCookieHandler
-                    override fun loadForRequest(url: HttpUrl): List<Cookie> {
-                        return if (!cookieHandler.useCookieForRequest(url.toUri())) emptyList() else run {
-                            val cookieList = cookieMap[url.toUri()] ?: emptyList()
-                            cookieList.map { httpHandlerCookie ->
-                                Cookie.Builder().domain(httpHandlerCookie.domain).name(httpHandlerCookie.name)
-                                        .value(httpHandlerCookie.value).apply { if (httpHandlerCookie.secure) secure() }
-                                        .apply { if (httpHandlerCookie.httpOnly) httpOnly() }
-                                        .path(httpHandlerCookie.path)
-                                        .expiresAt(httpHandlerCookie.whenCreated + httpHandlerCookie.maxAge)
-                                        .hostOnlyDomain(httpHandlerCookie.domain)
-                                        .build()
-                            }.filter { cookie -> cookie.expiresAt - System.currentTimeMillis() > 0 }
-                        }
-                    }
+                }
 
-                    override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-                        val uri = url.toUri()
-                        val httpHandlerCookies = cookies.map { cookie ->
-                            HttpCookie.Builder().whenCreated(System.currentTimeMillis())
-                                    .domain(cookie.domain).name(cookie.name).value(cookie.value)
-                                    .maxAge(cookie.expiresAt - System.currentTimeMillis())
-                                    .httpOnly(cookie.httpOnly)
-                                    .secure(cookie.secure)
-                                    .whenCreated(System.currentTimeMillis())
-                                    .build()
-                        }.filter { httpHandlerCookie -> cookieHandler.shouldSaveCookie(uri, httpHandlerCookie) }
-                        synchronized(EasyHttp::class) {
-                            cookieMap[uri] = httpHandlerCookies.apply {
-                                val eachUriCookieCount = cookieHandler.eachUriCookieCount(uri)
-                                if (this.size >= eachUriCookieCount) {
-                                    subList(this.size - eachUriCookieCount, this.size)
-                                }
+                override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+                    val uri = url.toUri()
+                    val httpHandlerCookies = cookies.map { cookie ->
+                        HttpCookie.Builder().whenCreated(System.currentTimeMillis())
+                            .domain(cookie.domain).name(cookie.name).value(cookie.value)
+                            .maxAge(cookie.expiresAt - System.currentTimeMillis())
+                            .httpOnly(cookie.httpOnly)
+                            .secure(cookie.secure)
+                            .whenCreated(System.currentTimeMillis())
+                            .build()
+                    }.filter { httpHandlerCookie -> cookieHandler.shouldSaveCookie(uri, httpHandlerCookie) }
+                    synchronized(EasyHttp::class) {
+                        cookieMap[uri] = httpHandlerCookies.apply {
+                            val eachUriCookieCount = cookieHandler.eachUriCookieCount(uri)
+                            if (this.size >= eachUriCookieCount) {
+                                subList(this.size - eachUriCookieCount, this.size)
                             }
-                        }
-                    }
-                }).addInterceptor(object : Interceptor {
-                    override fun intercept(chain: Interceptor.Chain): Response {
-                        val timeoutConfig = httpConfig.timeoutConfig
-                        val request = chain.request()
-                        if (timeoutConfig.tag == request.tag()
-                                || request.url.toUri().toString().contains(timeoutConfig.urlSegment, true)) {
-                            chain.withConnectTimeout(timeoutConfig.connectTimeout.toInt(), TimeUnit.MILLISECONDS)
-                                    .withReadTimeout(timeoutConfig.readTimeOut.toInt(), TimeUnit.MILLISECONDS)
-                                    .withWriteTimeout(timeoutConfig.writeTimeOut.toInt(), TimeUnit.MILLISECONDS)
-                        }
-                        return chain.proceed(request)
-                    }
-                })
-                .build()
-
-        urlConnectionClient = UrlConnectionClient.Builder().proxy(config.proxy)
-                .readTimeOut(config.readTimeOut)
-                .connectTimeOut(config.connectTimeout)
-                .hostNameVerifier(config.hostnameVerifier)
-                .sslSocketFactory(config.sslSocketFactory)
-                .x509TrustManager(config.x509TrustManager)
-                .dns(config.dns)
-                .build().apply {
-                    setInterceptor { urlConnectionReq ->
-                        run {
-                            val timeoutConfig = httpConfig.timeoutConfig
-                            if (timeoutConfig.tag == urlConnectionReq.reqTag
-                                    || urlConnectionReq.url.contains(timeoutConfig.urlSegment, true)) {
-                                this.proceedInternal(urlConnectionReq.newBuilder().connectTimeOut(timeoutConfig.connectTimeout)
-                                        .readTimeOut(timeoutConfig.connectTimeout).writeTimeOut(timeoutConfig.writeTimeOut)
-                                        .build())
-                            }
-                            this.proceedInternal(urlConnectionReq)
                         }
                     }
                 }
+            }).addInterceptor(object : Interceptor {
+                override fun intercept(chain: Interceptor.Chain): Response {
+                    val timeoutConfig = httpConfig.timeoutConfig
+                    val request = chain.request()
+                    if (timeoutConfig.tag == request.tag()
+                        || request.url.toUri().toString().contains(timeoutConfig.urlSegment, true)) {
+                        chain.withConnectTimeout(timeoutConfig.connectTimeout.toInt(), TimeUnit.MILLISECONDS)
+                            .withReadTimeout(timeoutConfig.readTimeOut.toInt(), TimeUnit.MILLISECONDS)
+                            .withWriteTimeout(timeoutConfig.writeTimeOut.toInt(), TimeUnit.MILLISECONDS)
+                    }
+                    return chain.proceed(request)
+                }
+            })
+            .build()
+
+        urlConnectionClient = UrlConnectionClient.Builder().proxy(config.proxy)
+            .readTimeOut(config.readTimeOut)
+            .connectTimeOut(config.connectTimeout)
+            .hostNameVerifier(config.hostnameVerifier)
+            .sslSocketFactory(config.sslSocketFactory)
+            .x509TrustManager(config.x509TrustManager)
+            .dns(config.dns)
+            .build().apply {
+                setInterceptor { urlConnectionReq ->
+                    run {
+                        val timeoutConfig = httpConfig.timeoutConfig
+                        if (timeoutConfig.tag == urlConnectionReq.reqTag
+                            || urlConnectionReq.url.contains(timeoutConfig.urlSegment, true)) {
+                            this.proceedInternal(urlConnectionReq.newBuilder().connectTimeOut(timeoutConfig.connectTimeout)
+                                .readTimeOut(timeoutConfig.connectTimeout).writeTimeOut(timeoutConfig.writeTimeOut)
+                                .build())
+                        }
+                        this.proceedInternal(urlConnectionReq)
+                    }
+                }
+            }
 
         CookieHandler.setDefault(CookieManager(object : CookieStore {
 
@@ -189,9 +189,9 @@ object EasyHttp {
 
             override fun get(uri: URI): MutableList<java.net.HttpCookie>? {
                 val httpCookieList = cookieMap[uri]?.filter { httpHandlerCookie -> System.currentTimeMillis() - httpHandlerCookie.maxAge > 0 }
-                        ?.map { httpHandlerCookie ->
-                            httpHandlerCookie2HttpCookie(httpHandlerCookie)
-                        }
+                    ?.map { httpHandlerCookie ->
+                        httpHandlerCookie2HttpCookie(httpHandlerCookie)
+                    }
                 return httpCookieList?.toMutableList() ?: arrayListOf()
             }
         }, CookiePolicy { uri, cookie ->
@@ -235,35 +235,35 @@ object EasyHttp {
                 }
                 val cacheBuilder = HttpCache.Builder()
                 val httpCache = cacheBuilder.cacheCreated(System.currentTimeMillis()).cacheResponse(cacheResponse)
-                        .apply {
-                            cacheControlHeaders.forEach { t ->
-                                if (t.startsWith("max-age", true)) {
-                                    val maxAge = t.substring(8).toLong()
-                                    maxAge(maxAge)
-                                }
-                                if (t.equals("no-store", true)) {
-                                    noStore()
-                                    cache.remove(uri)
-                                }
-                                if (t.equals("no-cache", true)) {
-                                    noCache()
-                                    cache.remove(uri)
-                                }
-                                if (t.equals("public", true)) {
-                                    isPublic()
-                                }
-                                if (t.equals("private", true)) {
-                                    isPrivate()
-                                }
-                                if (t.equals("must-revalidate", true)) {
-                                    mustRevalidate()
-                                }
-                                if (t.startsWith("max-stale", true)) {
-                                    val maxStale = t.substring(10).toLong()
-                                    maxStale(maxStale)
-                                }
+                    .apply {
+                        cacheControlHeaders.forEach { t ->
+                            if (t.startsWith("max-age", true)) {
+                                val maxAge = t.substring(8).toLong()
+                                maxAge(maxAge)
                             }
-                        }.build()
+                            if (t.equals("no-store", true)) {
+                                noStore()
+                                cache.remove(uri)
+                            }
+                            if (t.equals("no-cache", true)) {
+                                noCache()
+                                cache.remove(uri)
+                            }
+                            if (t.equals("public", true)) {
+                                isPublic()
+                            }
+                            if (t.equals("private", true)) {
+                                isPrivate()
+                            }
+                            if (t.equals("must-revalidate", true)) {
+                                mustRevalidate()
+                            }
+                            if (t.startsWith("max-stale", true)) {
+                                val maxStale = t.substring(10).toLong()
+                                maxStale(maxStale)
+                            }
+                        }
+                    }.build()
 
                 if (httpCache.maxAge > 0 && !httpCache.noCache && !httpCache.noStore) {
                     if (isMemoryCache) {
@@ -314,11 +314,11 @@ object EasyHttp {
 
     private fun httpCookie2HttpHandlerCookie(httpCookie: java.net.HttpCookie): HttpCookie {
         return HttpCookie.Builder().whenCreated(System.currentTimeMillis())
-                .domain(httpCookie.domain).name(httpCookie.name).value(httpCookie.value)
-                .maxAge(httpCookie.maxAge + System.currentTimeMillis())
-                .secure(httpCookie.secure)
-                .whenCreated(System.currentTimeMillis())
-                .build()
+            .domain(httpCookie.domain).name(httpCookie.name).value(httpCookie.value)
+            .maxAge(httpCookie.maxAge + System.currentTimeMillis())
+            .secure(httpCookie.secure)
+            .whenCreated(System.currentTimeMillis())
+            .build()
     }
 
     private fun httpHandlerCookie2HttpCookie(httpCookie: HttpCookie): java.net.HttpCookie {

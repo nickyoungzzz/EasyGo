@@ -16,7 +16,7 @@ class HttpCache private constructor(builder: Builder) : Serializable {
     var mustRevalidate = builder.mustRevalidate
     var cacheCreated = builder.cacheCreated
 
-    class Builder constructor() {
+    class Builder {
         internal var cacheResponse: CacheResponse? = null
         internal var maxAge = -1L
         internal var noCache = false

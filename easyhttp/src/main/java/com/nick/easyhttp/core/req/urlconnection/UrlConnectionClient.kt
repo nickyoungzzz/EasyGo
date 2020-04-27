@@ -31,10 +31,10 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 	var dns = builder.dns
 	var interceptor = fun(urlConnectionReq: UrlConnectionReq): UrlConnectionResp {
 		return proceedInternal(urlConnectionReq.newBuilder()
-				.readTimeOut(this.readTimeOut)
-				.writeTimeOut(this.readTimeOut)
-				.connectTimeOut(this.connectTimeout)
-				.build())
+			.readTimeOut(this.readTimeOut)
+			.writeTimeOut(this.readTimeOut)
+			.connectTimeOut(this.connectTimeout)
+			.build())
 	}
 
 	constructor() : this(Builder())
@@ -155,7 +155,7 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 						outputStream.writeBytes("$end$twoHyphens$boundary")
 						outputStream.writeBytes("Content-Disposition: form-data; $key:${value.run {
 							if (this is File) run {
-								outputStream.write(FileInputStream(this as File).readBytes())
+								outputStream.write(FileInputStream(this).readBytes())
 								this.absolutePath
 							} else this
 						}
