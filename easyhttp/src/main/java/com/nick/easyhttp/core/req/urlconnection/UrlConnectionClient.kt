@@ -29,6 +29,13 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 	var readTimeOut = builder.readTimeOut
 	var writeTimeOut = builder.writeTimeOut
 	var dns = builder.dns
+	var interceptor = fun(urlConnectionReq: UrlConnectionReq): UrlConnectionResp {
+		return proceedInternal(urlConnectionReq.newBuilder()
+				.readTimeOut(this.readTimeOut)
+				.writeTimeOut(this.readTimeOut)
+				.connectTimeOut(this.connectTimeout)
+				.build())
+	}
 
 	constructor() : this(Builder())
 
@@ -83,6 +90,10 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 		fun build() = UrlConnectionClient(this)
 	}
 
+	fun setInterceptor(interceptor: (urlConnectionReq: UrlConnectionReq) -> UrlConnectionResp) = apply {
+		this.interceptor = interceptor
+	}
+
 	private fun makeDns(host: String, array: Array<InetAddress>) {
 
 		val netAddressClass: Class<InetAddress> = InetAddress::class.java
@@ -98,6 +109,10 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 	private lateinit var connection: HttpsURLConnection
 
 	fun proceed(urlConnectionReq: UrlConnectionReq): UrlConnectionResp {
+		return interceptor(urlConnectionReq)
+	}
+
+	internal fun proceedInternal(urlConnectionReq: UrlConnectionReq): UrlConnectionResp {
 		if (urlConnectionReq.reqMethod in setOf(ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD)) {
 			urlConnectionReq.fieldMap.forEach { (key, value) ->
 				urlConnectionReq.queryMap[key] = value
@@ -112,8 +127,8 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 		stringBuilder.clear()
 		connection = url.openConnection(this.proxy) as HttpsURLConnection
 		connection.requestMethod = urlConnectionReq.reqMethod.method
-		connection.connectTimeout = this.connectTimeout.toInt()
-		connection.readTimeout = this.readTimeOut.toInt()
+		connection.connectTimeout = urlConnectionReq.connectTimeout.toInt()
+		connection.readTimeout = urlConnectionReq.readTimeOut.toInt()
 		connection.doOutput = true
 		connection.hostnameVerifier = this.hostnameVerifier
 		connection.sslSocketFactory = connection.sslSocketFactory

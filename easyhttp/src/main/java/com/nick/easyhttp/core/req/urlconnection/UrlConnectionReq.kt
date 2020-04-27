@@ -14,8 +14,15 @@ class UrlConnectionReq constructor(builder: Builder) {
 	var isMultiPart = builder.isMultiPart
 	var jsonString = builder.jsonString
 	var asDownload = builder.asDownload
+	var connectTimeout = builder.connectTimeOut
+	var readTimeOut = builder.readTimeOut
+	var writeTimeOut = builder.writeTimeOut
 
 	fun newBuilder() = Builder(this)
+
+	companion object {
+		private const val TIMEOUT = 15000L
+	}
 
 	class Builder constructor() {
 
@@ -29,6 +36,9 @@ class UrlConnectionReq constructor(builder: Builder) {
 		internal var isMultiPart = false
 		internal var jsonString = ""
 		internal var asDownload = false
+		internal var connectTimeOut: Long = TIMEOUT
+		internal var readTimeOut: Long = TIMEOUT
+		internal var writeTimeOut: Long = TIMEOUT
 
 		internal constructor(urlConnectionReq: UrlConnectionReq) : this() {
 			this.url = urlConnectionReq.url
@@ -41,6 +51,9 @@ class UrlConnectionReq constructor(builder: Builder) {
 			this.isMultiPart = urlConnectionReq.isMultiPart
 			this.jsonString = urlConnectionReq.jsonString
 			this.asDownload = urlConnectionReq.asDownload
+			this.connectTimeOut = urlConnectionReq.connectTimeout
+			this.readTimeOut = urlConnectionReq.readTimeOut
+			this.writeTimeOut = urlConnectionReq.writeTimeOut
 		}
 
 		fun url(url: String) = apply { this.url = url }
@@ -62,6 +75,12 @@ class UrlConnectionReq constructor(builder: Builder) {
 		fun jsonString(jsonString: String) = apply { this.jsonString = jsonString }
 
 		fun asDownload(asDownload: Boolean) = apply { this.asDownload = asDownload }
+
+		fun connectTimeOut(connectTimeOut: Long) = apply { this.connectTimeOut = connectTimeOut }
+
+		fun readTimeOut(readTimeOut: Long) = apply { this.readTimeOut = readTimeOut }
+
+		fun writeTimeOut(writeTimeOut: Long) = apply { this.writeTimeOut = writeTimeOut }
 
 		fun build() = UrlConnectionReq(this)
 	}
