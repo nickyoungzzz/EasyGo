@@ -107,15 +107,13 @@ object EasyHttp {
                 }
             }).addInterceptor(object : Interceptor {
                 override fun intercept(chain: Interceptor.Chain): Response {
-                    val timeoutConfig = httpConfig.timeoutConfig
                     val request = chain.request()
-                    if (timeoutConfig.tag == request.tag()
-                        || request.url.toUri().toString().contains(timeoutConfig.urlSegment, true)) {
-                        chain.withConnectTimeout(timeoutConfig.connectTimeout.toInt(), TimeUnit.MILLISECONDS)
+                    val timeoutConfig = httpConfig.timeoutHandler(request.url.toUri().toString(), request.tag(),
+                            request.method, request.headers.toMultimap())
+                    return chain.withConnectTimeout(timeoutConfig.connectTimeout.toInt(), TimeUnit.MILLISECONDS)
                             .withReadTimeout(timeoutConfig.readTimeOut.toInt(), TimeUnit.MILLISECONDS)
                             .withWriteTimeout(timeoutConfig.writeTimeOut.toInt(), TimeUnit.MILLISECONDS)
-                    }
-                    return chain.proceed(request)
+                            .proceed(request)
                 }
             })
             .build()
@@ -129,16 +127,22 @@ object EasyHttp {
             .dns(config.dns)
             .build().apply {
                 setInterceptor { urlConnectionReq ->
-                    run {
-                        val timeoutConfig = httpConfig.timeoutConfig
-                        if (timeoutConfig.tag == urlConnectionReq.reqTag
-                            || urlConnectionReq.url.contains(timeoutConfig.urlSegment, true)) {
-                            this.proceedInternal(urlConnectionReq.newBuilder().connectTimeOut(timeoutConfig.connectTimeout)
-                                .readTimeOut(timeoutConfig.connectTimeout).writeTimeOut(timeoutConfig.writeTimeOut)
-                                .build())
+                    val headerMap = hashMapOf<String, List<String>>()
+                    urlConnectionReq.headerMap.forEach {(key, value) ->
+                        if (headerMap.containsKey(key)) {
+                            val list = headerMap[key] as ArrayList
+                            list.add(value)
+                        } else {
+                            val list = arrayListOf<String>()
+                            list.add(value)
+                            headerMap[key] = list
                         }
-                        this.proceedInternal(urlConnectionReq)
                     }
+                    val timeoutConfig = httpConfig.timeoutHandler(urlConnectionReq.url, urlConnectionReq.reqTag,
+                                urlConnectionReq.reqMethod.method, headerMap)
+                    return@setInterceptor this.proceedInternal(urlConnectionReq.newBuilder()
+                            .connectTimeOut(timeoutConfig.connectTimeout).readTimeOut(timeoutConfig.readTimeOut)
+                            .writeTimeOut(timeoutConfig.writeTimeOut).build())
                 }
             }
 

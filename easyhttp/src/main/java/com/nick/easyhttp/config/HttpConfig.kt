@@ -29,7 +29,7 @@ class HttpConfig internal constructor(builder: Builder) {
     var dns = builder.dns
     var httpCookieHandler = builder.httpCookieHandler
     var httpCacheHandler = builder.httpCacheHandler
-    var timeoutConfig = builder.timeoutConfig
+    var timeoutHandler = builder.timeoutHandler
 
     constructor() : this(Builder())
 
@@ -55,7 +55,7 @@ class HttpConfig internal constructor(builder: Builder) {
         internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
         internal var httpCookieHandler = HttpCookieHandler.NO_COOKIE
         internal var httpCacheHandler = HttpCacheHandler.MEMORY_CACHE
-        internal var timeoutConfig = TimeoutConfig.DEFAULT_TIMEOUT
+        internal var timeoutHandler = fun(_: String, _: Any?, _: String, _: Map<String, List<String>>): TimeoutConfig = TimeoutConfig.DEFAULT_CONFIG
 
         constructor(httpConfig: HttpConfig) : this() {
             this.proxy = httpConfig.proxy
@@ -72,7 +72,6 @@ class HttpConfig internal constructor(builder: Builder) {
             this.dns = httpConfig.dns
             this.httpCookieHandler = httpConfig.httpCookieHandler
             this.httpCacheHandler = httpConfig.httpCacheHandler
-            this.timeoutConfig = httpConfig.timeoutConfig
         }
 
         fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
@@ -103,7 +102,9 @@ class HttpConfig internal constructor(builder: Builder) {
 
         fun httpCacheHandler(httpCacheHandler: HttpCacheHandler) = apply { this.httpCacheHandler = httpCacheHandler }
 
-        fun timeoutHandler(timeoutConfig: TimeoutConfig) = apply { this.timeoutConfig = timeoutConfig }
+        fun timeoutHandler(timeoutHandler: (url: String, tag: Any?, method: String, headers: Map<String, List<String>>) -> TimeoutConfig) = apply {
+            this.timeoutHandler = timeoutHandler
+        }
 
         fun build() = HttpConfig(this)
     }
