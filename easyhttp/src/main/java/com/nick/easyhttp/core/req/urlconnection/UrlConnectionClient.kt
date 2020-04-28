@@ -138,6 +138,7 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 		when (urlConnectionReq.reqMethod) {
 			ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD -> connection.doOutput = false
 			ReqMethod.POST, ReqMethod.PUT, ReqMethod.DELETE, ReqMethod.PATCH -> {
+				urlConnectionReq.headerMap["Content-Type"] = "application/json"
 				connection.setRequestProperty("Content-Type", "application/json")
 				val outputStream = DataOutputStream(connection.outputStream)
 				outputStream.writeBytes(urlConnectionReq.jsonString)
@@ -150,14 +151,15 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 					val end = "/r/n"
 					val twoHyphens = "--"
 					val boundary = "*****"
+
 					connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=$boundary")
 					urlConnectionReq.multipartBody.forEach { (key, value) ->
 						outputStream.writeBytes("$end$twoHyphens$boundary")
 						outputStream.writeBytes("Content-Disposition: form-data; $key:${value.run {
-							if (this is File) run {
-								outputStream.write(FileInputStream(this).readBytes())
-								this.absolutePath
-							} else this
+							if (this is File) let {
+								outputStream.write(FileInputStream(it).readBytes())
+								it.absolutePath
+							} else this@run
 						}
 						};$end")
 						outputStream.writeBytes("$end$twoHyphens$boundary")
