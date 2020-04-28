@@ -156,9 +156,11 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 					urlConnectionReq.multipartBody.forEach { (key, value) ->
 						outputStream.writeBytes("$end$twoHyphens$boundary")
 						outputStream.writeBytes("Content-Disposition: form-data; $key:${value.run {
-							if (this is File) let {
-								outputStream.write(FileInputStream(it).readBytes())
-								it.absolutePath
+							if (this is File) {
+                                val fileInputStream = FileInputStream(this)
+								outputStream.write(fileInputStream.readBytes())
+                                fileInputStream.close()
+								this.absolutePath
 							} else this@run
 						}
 						};$end")
