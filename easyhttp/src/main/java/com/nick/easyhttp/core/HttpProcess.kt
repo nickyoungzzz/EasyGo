@@ -1,4 +1,4 @@
-@file:JvmName("EasyHttp")
+@file:JvmName("EasyHttpKt")
 @file:JvmMultifileClass
 
 package com.nick.easyhttp.core

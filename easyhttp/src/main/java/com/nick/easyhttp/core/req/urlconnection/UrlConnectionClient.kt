@@ -157,9 +157,9 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 						outputStream.writeBytes("$end$twoHyphens$boundary")
 						outputStream.writeBytes("Content-Disposition: form-data; $key:${value.run {
 							if (this is File) {
-                                val fileInputStream = FileInputStream(this)
+								val fileInputStream = FileInputStream(this)
 								outputStream.write(fileInputStream.readBytes())
-                                fileInputStream.close()
+								fileInputStream.close()
 								this.absolutePath
 							} else this@run
 						}
