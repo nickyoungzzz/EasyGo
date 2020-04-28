@@ -15,7 +15,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.util.*
 
-class HttpRequest internal constructor(private val reqUrl: String, private val reqMethod: ReqMethod) {
+class HttpSend internal constructor(private val reqUrl: String, private val reqMethod: ReqMethod) {
 
 	private var reqTag: Any? = null
 
@@ -135,7 +135,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 			.build()
 	}
 
-	fun request(): HttpResult {
+	fun send(): HttpResult {
 		val httpReq = httpConfig.before(httpReq())
 		val httpResp = httpConfig.after(httpReq, getProxyHttpHandler().execute(httpReq))
 		val status = if (httpResp.exception != null) HttpStatus.EXCEPTION
@@ -149,7 +149,7 @@ class HttpRequest internal constructor(private val reqUrl: String, private val r
 	}
 
 	@JvmOverloads
-	fun execute(exc: (e: Throwable) -> Unit = {}, download: (downloadState: DownloadState) -> Unit = {}): HttpRequest {
+	fun download(exc: (e: Throwable) -> Unit = {}, download: (downloadState: DownloadState) -> Unit = {}) = apply {
 		val source = downloadParam.source
 		val range = if (downloadParam.breakPoint && source.exists()) source.length() else 0
 		val httpResp = getProxyHttpHandler().execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })

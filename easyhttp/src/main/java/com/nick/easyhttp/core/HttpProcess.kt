@@ -3,24 +3,24 @@
 
 package com.nick.easyhttp.core
 
-fun String.get() = HttpRequest(this, ReqMethod.GET)
+fun String.get() = HttpSend(this, ReqMethod.GET)
 
-fun String.getForm(url: String) = HttpRequest(this, ReqMethod.GET_FORM)
+fun String.getForm(url: String) = HttpSend(this, ReqMethod.GET_FORM)
 
-fun String.post(): HttpRequest = HttpRequest(this, ReqMethod.POST)
+fun String.post(): HttpSend = HttpSend(this, ReqMethod.POST)
 
-fun String.postForm() = HttpRequest(this, ReqMethod.POST_FORM)
+fun String.postForm() = HttpSend(this, ReqMethod.POST_FORM)
 
-fun String.put() = HttpRequest(this, ReqMethod.PUT)
+fun String.put() = HttpSend(this, ReqMethod.PUT)
 
-fun String.putForm() = HttpRequest(this, ReqMethod.PUT_FORM)
+fun String.putForm() = HttpSend(this, ReqMethod.PUT_FORM)
 
-fun String.delete() = HttpRequest(this, ReqMethod.DELETE)
+fun String.delete() = HttpSend(this, ReqMethod.DELETE)
 
-fun String.deleteForm() = HttpRequest(this, ReqMethod.DELETE_FORM)
+fun String.deleteForm() = HttpSend(this, ReqMethod.DELETE_FORM)
 
-fun String.patch() = HttpRequest(this, ReqMethod.PATCH)
+fun String.patch() = HttpSend(this, ReqMethod.PATCH)
 
-fun String.patchForm() = HttpRequest(this, ReqMethod.PATCH_FORM)
+fun String.patchForm() = HttpSend(this, ReqMethod.PATCH_FORM)
 
-fun String.head() = HttpRequest(this, ReqMethod.HEAD)
+fun String.head() = HttpSend(this, ReqMethod.HEAD)
