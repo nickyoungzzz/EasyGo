@@ -20,9 +20,11 @@
 
 8、文件下载时文件保存使用okio来读写，可以实现IDownloadhandler自定义其他框架来读写文件；
 
+9、支持动态配置各个请求的超时时间；
+
 ### 一、添加依赖 
 ```3
-implementation 'com.nick.common:easyhttp:1.1.4'
+implementation 'com.nick.common:easyhttp:1.1.5'
 ```
 ### 二、使用方法
 #### 1、全局配置
@@ -36,10 +38,11 @@ implementation 'com.nick.common:easyhttp:1.1.4'
 		.dns { host: String -> InetAddress.getAllByName(host) } // 自定义dns， 默认为系统dns解析
 		.hostNameVerifier(HostnameVerifier { hostname, session -> true }) // 自定义主机名验证，默认为不验证
 		.sslSocketFactory(SslHelper.getSSLSocketFactory()) // 自定义证书，使用默认证书
-		.interceptor { httpReq, httpResp -> run {
-			println(httpReq.url) // 比如打印日志，url、header等请求信息
-			httpResp // 最终返回一个HttpResp
-		}} // 添加全局拦截器，在请求之后，并返回HttpResp
+		.beforeSend { httpReq -> httpReq } // 请求之前（全局配置，对所有请求生效）
+		.afterReply { httpReq, httpResp -> // 请求之后（全局配置，对所有请求生效）
+			httpResp
+		}
+		.timeoutHandler { url, tag, method, headers ->  TimeoutConfig.DEFAULT_CONFIG } // 有条件的进行超市配置
 		.build()
 	
 	// 配置全局的HttpConfig，该行代码只可执行一次，可在项目初始化时执行。
@@ -57,14 +60,15 @@ implementation 'com.nick.common:easyhttp:1.1.4'
 		.addJsonString("{\"name\":\"lisi\", \"age\": 10}") // 添加json数据请求体
 		.addField("account", "123456") // 添加表单数据
 		.isMultiPart() // 是否为多请求体
-		.intercept({ httpReq: HttpReq -> httpReq }, // 请求之前的拦截
-			{ httpReq: HttpReq, httpResp: HttpResp -> httpResp } // 请求之后的拦截
-		)
+		.beforeSend { httpReq -> httpReq } // 请求之前（只对当前请求生效）
+		.afterReply { httpReq, httpResp -> // 请求之后（只对当前请求生效）
+			httpResp
+		}
 		.tag("req") // 添加请求的tag
 ```		
 ```
 // 发起普通请求
-	val httpResult: HttpResult = request.request()
+	val httpResult: HttpResult = request.send()
 
 	// 获取请求成功时的数据
 	val success: Int? = httpResult.getSuccess { string: String -> string.length } // 转换器, success的类型跟实际转换器泛型类型相关
@@ -98,7 +102,7 @@ implementation 'com.nick.common:easyhttp:1.1.4'
 				// 取消保存
 			}
 		}) // 不配置，就默认使用OkIoDownloadHandler
-		.execute(exc = fun(e: Throwable) { // 出现异常
+		.download(exc = fun(e: Throwable) { // 出现异常
 			println(e) // 如打印异常
 		}, download = fun(downloadState: DownloadState) { // 文件保存进度回调
 			val current = downloadState.current // 当前大小
