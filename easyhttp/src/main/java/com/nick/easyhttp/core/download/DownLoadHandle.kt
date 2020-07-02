@@ -2,8 +2,8 @@ package com.nick.easyhttp.core.download
 
 import java.io.File
 
-class DownloadState constructor(var current: Long, var total: Long, var finished: Boolean, var canceled: Boolean)
-class DownloadParam {
+class DownState constructor(var current: Long, var total: Long, var finished: Boolean, var canceled: Boolean)
+class DownParam {
 
 	internal var desSource: File = File("")
 

@@ -4,8 +4,8 @@ import java.io.InputStream
 
 interface DownloadHandler {
 
-	fun saveFile(inputStream: InputStream, downloadParam: DownloadParam,
-	             contentLength: Long, listener: (state: DownloadState) -> Unit
+	fun saveFile(inputStream: InputStream, downParam: DownParam,
+	             contentLength: Long, listener: (state: DownState) -> Unit
 	)
 
 	fun cancel()

@@ -7,16 +7,16 @@ class OkIoDownHandler : DownloadHandler {
 
 	@Volatile private var isCanceled = false
 
-	override fun saveFile(inputStream: InputStream, downloadParam: DownloadParam, contentLength: Long,
-	                      listener: (state: DownloadState) -> Unit
+	override fun saveFile(inputStream: InputStream, downParam: DownParam, contentLength: Long,
+	                      listener: (state: DownState) -> Unit
 	) {
-		val file = downloadParam.desSource
-		val breakPoint = downloadParam.breakPoint
+		val file = downParam.desSource
+		val breakPoint = downParam.breakPoint
 		if (!file.exists() || !breakPoint) {
 			file.delete()
 			file.createNewFile()
 		}
-		val downloadState = DownloadState(file.length(),
+		val downloadState = DownState(file.length(),
 			file.length() + contentLength, finished = false, canceled = false)
 		file.appendingSink().buffer().writeAll(object : ForwardingSource(inputStream.source()) {
 
