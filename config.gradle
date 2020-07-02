@@ -1,7 +1,7 @@
 ext{
 
     android = [
-            compileSdkVersion: 28,
+            compileSdkVersion: 29,
             buildToolsVersion: '28.0.3',
             applicationId    : "com.nick.base",
             minSdkVersion    : 19,
@@ -12,7 +12,7 @@ ext{
 
     def dependVersion = [
             retrofit : '2.8.1',
-            rxjava   : '2.2.14',
+            rxjava   : '2.2.19',
             rxandroid: '2.1.1',
     ]
 

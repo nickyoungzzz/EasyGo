@@ -3,24 +3,28 @@
 
 package com.nick.easyhttp.core
 
-fun String.get() = HttpSend(this, ReqMethod.GET)
+import com.nick.easyhttp.core.param.HttpParam
 
-fun String.getForm(url: String) = HttpSend(this, ReqMethod.GET_FORM)
+fun http(reqMethod: ReqMethod, init: HttpParam.() -> Unit) = HttpSend(HttpParam(reqMethod).apply(init))
 
-fun String.post(): HttpSend = HttpSend(this, ReqMethod.POST)
+fun httpGet(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.GET).apply(init))
 
-fun String.postForm() = HttpSend(this, ReqMethod.POST_FORM)
+fun httpGetForm(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.GET_FORM).apply(init))
 
-fun String.put() = HttpSend(this, ReqMethod.PUT)
+fun httpPost(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.POST).apply(init))
 
-fun String.putForm() = HttpSend(this, ReqMethod.PUT_FORM)
+fun httpPostForm(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.POST_FORM).apply(init))
 
-fun String.delete() = HttpSend(this, ReqMethod.DELETE)
+fun httpPut(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.PUT).apply(init))
 
-fun String.deleteForm() = HttpSend(this, ReqMethod.DELETE_FORM)
+fun httpPutForm(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.PUT_FORM).apply(init))
 
-fun String.patch() = HttpSend(this, ReqMethod.PATCH)
+fun httpDelete(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.DELETE).apply(init))
 
-fun String.patchForm() = HttpSend(this, ReqMethod.PATCH_FORM)
+fun httpDeleteForm(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.DELETE_FORM).apply(init))
 
-fun String.head() = HttpSend(this, ReqMethod.HEAD)
+fun httpPatch(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.PATCH).apply(init))
+
+fun httpPatchForm(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.PATCH_FORM).apply(init))
+
+fun httpHead(init: HttpParam.() -> Unit) = HttpSend(HttpParam(ReqMethod.HEAD).apply(init))

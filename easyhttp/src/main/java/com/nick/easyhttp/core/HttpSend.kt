@@ -5,6 +5,7 @@ import com.nick.easyhttp.config.HttpConfig
 import com.nick.easyhttp.core.download.DownloadHandler
 import com.nick.easyhttp.core.download.DownloadParam
 import com.nick.easyhttp.core.download.DownloadState
+import com.nick.easyhttp.core.param.HttpParam
 import com.nick.easyhttp.core.req.HttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
@@ -13,23 +14,10 @@ import java.io.IOException
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
-import java.util.*
 
-class HttpSend internal constructor(private val reqUrl: String, private val reqMethod: ReqMethod) {
+class HttpSend internal constructor(var param: HttpParam) {
 
 	private var reqTag: Any? = null
-
-	private var queryMap = hashMapOf<String, String>()
-
-	private var headerMap = hashMapOf<String, String>()
-
-	private var fieldMap = hashMapOf<String, String>()
-
-	private val multipartBody = hashMapOf<String, Any>()
-
-	private var isMultiPart = false
-
-	private var jsonString = ""
 
 	private var asDownload = false
 
@@ -41,73 +29,16 @@ class HttpSend internal constructor(private val reqUrl: String, private val reqM
 
 	private lateinit var downloadParam: DownloadParam
 
-	fun addQuery(key: String, value: String) = apply {
-		queryMap[key] = value
-	}
-
-	fun addQueries(queryMap: HashMap<String, String>) = apply {
-		if (queryMap.isNotEmpty()) {
-			this.queryMap.forEach {
-				if (!this.queryMap.containsKey(it.key)) {
-					this.queryMap[it.key] = it.value
-				}
-			}
-		}
-	}
-
-	fun addField(key: String, value: String) = apply {
-		isMultiPart = false
-		fieldMap[key] = value
-	}
-
-	fun addFields(fieldMap: HashMap<String, String>) = apply {
-		if (fieldMap.isNotEmpty()) {
-			fieldMap.forEach {
-				if (!this.fieldMap.containsKey(it.key)) {
-					addField(it.key, it.value)
-				}
-			}
-		}
-	}
-
-	fun addJsonString(jsonString: String) = apply {
-		this.jsonString = jsonString
-	}
-
-	fun addMultiPart(key: String, value: Any) = apply {
-		isMultiPart = true
-		multipartBody[key] = value
-	}
-
-	fun addHeader(key: String, value: String) = apply {
-		headerMap[key] = value
-	}
-
-	fun addHeaders(headerMap: HashMap<String, String>) = apply {
-		if (headerMap.isNotEmpty()) {
-			headerMap.forEach {
-				if (!this.headerMap.containsKey(it.key)) {
-					addHeader(it.key, it.value)
-				}
-			}
-		}
-	}
-
-	fun tag(reqTag: Any) = apply {
+	fun tag(reqTag: Any) {
 		this.reqTag = reqTag
 	}
 
-	fun isMultiPart() = apply {
-		this.isMultiPart = true
-	}
-
-	@JvmOverloads
-	fun asDownload(downloadParam: DownloadParam = DownloadParam()) = apply {
+	fun asDownload(down: DownloadParam.() -> Unit) {
 		this.asDownload = true
-		this.downloadParam = downloadParam
+		this.downloadParam = DownloadParam().apply(down)
 	}
 
-	fun setHttpHandler(httpHandler: HttpHandler) = apply {
+	fun httpHandler(httpHandler: HttpHandler) {
 		this.httpHandler = httpHandler
 	}
 
@@ -124,18 +55,28 @@ class HttpSend internal constructor(private val reqUrl: String, private val reqM
 			HttpInvocation(httpHandler, beforeExecute, afterExecute, httpReq())) as HttpHandler
 	}
 
-	fun setDownloadHandler(downloadHandler: DownloadHandler) = apply {
+	fun downloadHandler(downloadHandler: DownloadHandler) {
 		this.downloadHandler = downloadHandler
 	}
 
 	private fun httpReq(): HttpReq {
-		return HttpReq.Builder().url(reqUrl).reqMethod(reqMethod).reqTag(reqTag).queryMap(queryMap).fieldMap(fieldMap)
-			.headerMap(headerMap).multipartBody(multipartBody).isMultiPart(isMultiPart).jsonString(jsonString)
-			.asDownload(asDownload)
-			.build()
+		return HttpReq.Builder().apply {
+			url(param.url)
+			reqMethod(param.reqMethod)
+			reqTag(reqTag)
+			queryMap(param.queryMap)
+			fieldMap(param.fieldMap)
+			headerMap(param.headerMap)
+			multipartBody(param.multipartBody)
+			isMultiPart(param.isMultiPart)
+			jsonString(param.jsonString)
+			asDownload(asDownload)
+		}.build()
 	}
 
-	fun send(): HttpResult {
+	fun extra(extra: HttpSend.() -> Unit) = apply(extra)
+
+	fun send(init: HttpResult.() -> Unit = {}): HttpResult {
 		val httpReq = httpConfig.before(httpReq())
 		val httpResp = httpConfig.after(httpReq, getProxyHttpHandler().execute(httpReq))
 		val status = if (httpResp.exception != null) HttpStatus.EXCEPTION
@@ -146,11 +87,12 @@ class HttpSend internal constructor(private val reqUrl: String, private val reqM
 			.throwable(httpResp.exception)
 			.status(status)
 			.build()
+			.apply(init)
 	}
 
 	@JvmOverloads
 	fun download(exc: (e: Throwable) -> Unit = {}, download: (downloadState: DownloadState) -> Unit = {}) = apply {
-		val source = downloadParam.source
+		val source = downloadParam.desSource
 		val range = if (downloadParam.breakPoint && source.exists()) source.length() else 0
 		val httpResp = getProxyHttpHandler().execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })
 		if (httpResp.isSuccessful) {

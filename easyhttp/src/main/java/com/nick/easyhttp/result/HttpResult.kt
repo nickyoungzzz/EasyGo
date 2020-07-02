@@ -12,12 +12,6 @@ class HttpResult internal constructor(builder: Builder) {
 
 	fun newBuilder() = Builder(this)
 
-	private fun isSuccess() = httpStatus == HttpStatus.SUCCESS
-
-	private fun isError() = httpStatus == HttpStatus.ERROR
-
-	private fun isException() = httpStatus == HttpStatus.EXCEPTION
-
 	class Builder constructor() {
 
 		internal var code = 0
@@ -47,21 +41,37 @@ class HttpResult internal constructor(builder: Builder) {
 		fun build(): HttpResult = HttpResult(this)
 	}
 
-	fun success(block: (string: String) -> Unit) = apply { if (isSuccess()) block(resp) }
+	fun success(t: () -> Unit) {
+		if (httpStatus == HttpStatus.SUCCESS) t()
+	}
 
-	fun error(block: (string: String) -> Unit) = apply { if (isError()) block(resp) }
+	fun error(f: () -> Unit) {
+		if (httpStatus == HttpStatus.ERROR) f()
+	}
 
-	fun exception(block: (e: Throwable?) -> Unit) = apply { if (isException()) block(throwable) }
+	fun exception(e: () -> Unit) {
+		if (httpStatus == HttpStatus.EXCEPTION) e()
+	}
 
-	fun <T> getSuccess(t: (string: String) -> T?): T? = if (isSuccess()) t(resp) else null
+	fun <T, F, E> result(s: Result<T, F, E>.() -> Unit): Result<T, F, E> {
+		return Result<T, F, E>(code, headers, resp, throwable, httpStatus).apply(s)
+	}
+}
 
-	fun <F> getError(t: (string: String) -> F?): F? = if (isError()) t(resp) else null
+class Result<T, F, E> constructor(var code: Int, var headers: Map<String, List<String>>, private var resp: String, private var throwable: Throwable?, private var httpStatus: HttpStatus) {
 
-	fun getException(t: (exception: Throwable?) -> Throwable): Throwable? = if (isException()) t(throwable) else null
+	var success: T? = null
+	var error: F? = null
+	var exception: E? = null
+	fun success(t: (r: String) -> T) {
+		success = if (httpStatus == HttpStatus.SUCCESS) t(resp) else null
+	}
 
-	fun getSuccessString(): String? = if (isSuccess()) resp else null
+	fun error(f: (r: String) -> F) {
+		error = if (httpStatus == HttpStatus.ERROR) f(resp) else null
+	}
 
-	fun getErrorString(): String? = if (isError()) resp else null
-
-	fun getException(): Throwable? = if (isException()) throwable else null
+	fun exception(e: (r: Throwable?) -> E) {
+		exception = if (httpStatus == HttpStatus.EXCEPTION) e(throwable) else null
+	}
 }

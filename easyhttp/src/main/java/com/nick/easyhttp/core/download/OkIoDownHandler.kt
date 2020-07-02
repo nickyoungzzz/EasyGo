@@ -10,7 +10,7 @@ class OkIoDownHandler : DownloadHandler {
 	override fun saveFile(inputStream: InputStream, downloadParam: DownloadParam, contentLength: Long,
 	                      listener: (state: DownloadState) -> Unit
 	) {
-		val file = downloadParam.source
+		val file = downloadParam.desSource
 		val breakPoint = downloadParam.breakPoint
 		if (!file.exists() || !breakPoint) {
 			file.delete()
