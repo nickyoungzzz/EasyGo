@@ -132,7 +132,7 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 		connection.doOutput = true
 		connection.hostnameVerifier = this.hostnameVerifier
 		connection.sslSocketFactory = connection.sslSocketFactory
-		urlConnectionReq.headerMap.apply { put("accept-encoding", "gzip, deflate, br") }.forEach { (key, value) ->
+		urlConnectionReq.headerMap.forEach { (key, value) ->
 			connection.addRequestProperty(key, value)
 		}
 		when (urlConnectionReq.reqMethod) {

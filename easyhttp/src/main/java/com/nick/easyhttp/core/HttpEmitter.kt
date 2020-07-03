@@ -7,9 +7,7 @@ import com.nick.easyhttp.core.download.DownState
 import com.nick.easyhttp.core.download.DownloadHandler
 import com.nick.easyhttp.core.param.HttpParam
 import com.nick.easyhttp.core.req.HttpHandler
-import com.nick.easyhttp.result.HttpReq
-import com.nick.easyhttp.result.HttpResp
-import com.nick.easyhttp.result.HttpResult
+import com.nick.easyhttp.result.*
 import java.io.IOException
 
 class HttpEmitter internal constructor(var param: HttpParam) {
@@ -56,18 +54,8 @@ class HttpEmitter internal constructor(var param: HttpParam) {
 	}
 
 	private fun httpReq(): HttpReq {
-		return HttpReq.Builder().apply {
-			url(param.url)
-			reqMethod(param.reqMethod)
-			reqTag(this@HttpEmitter.reqTag)
-			queryMap(param.queryMap)
-			fieldMap(param.fieldMap)
-			headerMap(param.headerMap)
-			multipartBody(param.multipartBody)
-			isMultiPart(param.isMultiPart)
-			jsonString(param.jsonString)
-			asDownload(this@HttpEmitter.asDownload)
-		}.build()
+		return HttpReq(param.url, param.reqMethod, this@HttpEmitter.reqTag, HttpReqHead(param.headerMap, param.queryMap),
+			HttpReqBody(param.fieldMap, param.multipartBody, param.isMultiPart, param.jsonString), this@HttpEmitter.asDownload)
 	}
 
 	fun deploy(extra: HttpEmitter.() -> Unit) = apply(extra)
@@ -80,11 +68,10 @@ class HttpEmitter internal constructor(var param: HttpParam) {
 		return HttpResult(httpResp.code, httpResp.headers, httpResp.resp, httpResp.exception, status).apply(init)
 	}
 
-	@JvmOverloads
 	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) {
 		val source = downParam.desSource
 		val range = if (downParam.breakPoint && source.exists()) source.length() else 0
-		val httpResp = httpHandler.execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })
+		val httpResp = httpHandler.execute(httpReq().also { it.httpReqHead.addOrReplaceHeader("Range", "bytes=${range}-") })
 		if (httpResp.isSuccessful) {
 			try {
 				downloadHandler.saveFile(httpResp.inputStream!!, downParam, httpResp.contentLength) { state ->

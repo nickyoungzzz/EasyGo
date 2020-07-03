@@ -41,6 +41,8 @@ object EasyHttp {
 
 		this.httpConfig = HttpConfig.Builder().apply(config).build()
 
+		hasConfig = true
+
 		cookieMap = object : LinkedHashMap<URI, List<HttpCookie>>() {
 			override fun removeEldestEntry(eldest: MutableMap.MutableEntry<URI, List<HttpCookie>>?): Boolean {
 				return size >= httpConfig.httpCookieHandler.maxCookieCount()

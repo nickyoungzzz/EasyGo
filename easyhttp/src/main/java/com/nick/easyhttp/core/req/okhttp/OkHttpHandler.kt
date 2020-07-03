@@ -18,22 +18,16 @@ class OkHttpHandler : HttpHandler {
 	private lateinit var call: Call
 
 	override fun execute(httpReq: HttpReq): HttpResp {
-		call = EasyHttp.okHttpClient.newCall(proceed(httpReq))
-		val httpRespBuilder = HttpResp.Builder()
-		try {
+		call = EasyHttp.okHttpClient.newCall(proceed(httpReq.apply { this.httpReqHead.addOrReplaceHeader("client-type", "OkHttp") }))
+		return try {
 			val response = call.execute()
 			val responseBody = response.body as ResponseBody
 			val resp = if (!httpReq.asDownload) responseBody.string() else ""
-			httpRespBuilder.isSuccessful(response.isSuccessful)
-				.code(response.code)
-				.headers(response.headers.toMultimap())
-				.contentLength(responseBody.contentLength())
-				.byteData(responseBody.byteStream())
-				.resp(resp)
+			HttpResp(resp, response.code, response.isSuccessful, response.headers.toMultimap(), null,
+				responseBody.contentLength(), responseBody.byteStream())
 		} catch (e: IOException) {
-			httpRespBuilder.isSuccessful(false).exception(e).build()
+			HttpResp("", 0, false, emptyMap(), null, 0, null)
 		}
-		return httpRespBuilder.build()
 	}
 
 	override fun cancel() {
@@ -43,14 +37,14 @@ class OkHttpHandler : HttpHandler {
 	}
 
 	private fun proceed(httpReq: HttpReq): Request {
-		val jsonBody = httpReq.jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())
-		val body = if (httpReq.isMultiPart) multiPart(httpReq.multipartBody) else form(httpReq.fieldMap)
+		val jsonBody = httpReq.httpReqBody.jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())
+		val body = if (httpReq.httpReqBody.isMultiPart) multiPart(httpReq.httpReqBody.multipartBody) else form(httpReq.httpReqBody.fieldMap)
 		return Request.Builder().tag(httpReq.reqTag).apply {
 			when (httpReq.reqMethod) {
 				ReqMethod.POST -> post(jsonBody)
 				ReqMethod.GET_FORM, ReqMethod.GET -> {
-					httpReq.fieldMap.forEach { (key, value) ->
-						httpReq.queryMap[key] = value
+					httpReq.httpReqBody.fieldMap.forEach { (key, value) ->
+						httpReq.httpReqHead.addOrReplaceHeader(key, value)
 					}
 					get()
 				}
@@ -63,15 +57,15 @@ class OkHttpHandler : HttpHandler {
 				ReqMethod.PATCH_FORM -> patch(body)
 				ReqMethod.HEAD -> head()
 			}.apply {
-				httpReq.headerMap.forEach { (key, value) -> addHeader(key, value) }
+				httpReq.httpReqHead.headerMap.forEach { (key, value) -> addHeader(key, value) }
 				val regex = if (httpReq.url.contains("?")) "&" else "?"
-				val stringBuilder = StringBuilder(if (httpReq.queryMap.isNotEmpty()) regex else "")
-				httpReq.queryMap.forEach { (key, value) ->
+				val stringBuilder = StringBuilder(if (httpReq.httpReqHead.queryMap.isNotEmpty()) regex else "")
+				httpReq.httpReqHead.queryMap.forEach { (key, value) ->
 					stringBuilder.append("$key=$value&")
 				}
 				url("${httpReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
 			}
-		}.cacheControl(CacheControl.parse(httpReq.headerMap.toHeaders())).build()
+		}.cacheControl(CacheControl.parse(httpReq.httpReqHead.headerMap.toHeaders())).build()
 	}
 
 	// 获取表单请求的RequestBody
