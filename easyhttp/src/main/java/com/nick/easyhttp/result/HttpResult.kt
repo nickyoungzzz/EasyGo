@@ -2,44 +2,7 @@ package com.nick.easyhttp.result
 
 import com.nick.easyhttp.core.HttpStatus
 
-class HttpResult internal constructor(builder: Builder) {
-
-	val code: Int = builder.code
-	val headers: Map<String, List<String>> = builder.headers
-	val resp: String = builder.resp
-	var throwable: Throwable? = builder.throwable
-	var httpStatus: HttpStatus = builder.httpStatus
-
-	fun newBuilder() = Builder(this)
-
-	class Builder constructor() {
-
-		internal var code = 0
-		internal var headers: Map<String, List<String>> = hashMapOf()
-		internal var resp = ""
-		internal var throwable: Throwable? = null
-		internal var httpStatus = HttpStatus.EXCEPTION
-
-		internal constructor(httpResult: HttpResult) : this() {
-			this.code = httpResult.code
-			this.headers = httpResult.headers
-			this.resp = httpResult.resp
-			this.throwable = httpResult.throwable
-			this.httpStatus = httpResult.httpStatus
-		}
-
-		fun code(code: Int) = apply { this.code = code }
-
-		fun headers(headers: Map<String, List<String>>) = apply { this.headers = headers }
-
-		fun resp(resp: String) = apply { this.resp = resp }
-
-		fun throwable(throwable: Throwable?) = apply { this.throwable = throwable }
-
-		fun status(httpStatus: HttpStatus) = apply { this.httpStatus = httpStatus }
-
-		fun build(): HttpResult = HttpResult(this)
-	}
+data class HttpResult internal constructor(val code: Int, val headers: Map<String, List<String>>, val resp: String, val throwable: Throwable?, val httpStatus: HttpStatus) {
 
 	fun success(t: () -> Unit) {
 		if (httpStatus == HttpStatus.SUCCESS) t()
@@ -58,11 +21,12 @@ class HttpResult internal constructor(builder: Builder) {
 	}
 }
 
-class Result<T, F, E> constructor(var code: Int, var headers: Map<String, List<String>>, private var resp: String, private var throwable: Throwable?, private var httpStatus: HttpStatus) {
+class Result<T, F, E> constructor(var code: Int, var headers: Map<String, List<String>>, private val resp: String, private val throwable: Throwable?, private val httpStatus: HttpStatus) {
 
 	var success: T? = null
 	var error: F? = null
 	var exception: E? = null
+
 	fun success(t: (r: String) -> T) {
 		success = if (httpStatus == HttpStatus.SUCCESS) t(resp) else null
 	}

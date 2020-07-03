@@ -77,13 +77,7 @@ class HttpSend internal constructor(var param: HttpParam) {
 		val httpResp = afterExecute(httpReq, httpConfig.after(httpReq, httpHandler.execute(httpReq)))
 		val status = if (httpResp.exception != null) HttpStatus.EXCEPTION
 		else (if (httpResp.isSuccessful) HttpStatus.SUCCESS else HttpStatus.ERROR)
-		return HttpResult.Builder().code(httpResp.code)
-			.headers(httpResp.headers)
-			.resp(httpResp.resp)
-			.throwable(httpResp.exception)
-			.status(status)
-			.build()
-			.apply(init)
+		return HttpResult(httpResp.code, httpResp.headers, httpResp.resp, httpResp.exception, status).apply(init)
 	}
 
 	@JvmOverloads
