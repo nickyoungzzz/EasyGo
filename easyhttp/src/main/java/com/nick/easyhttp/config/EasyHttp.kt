@@ -33,18 +33,17 @@ object EasyHttp {
 	@Volatile
 	private var isMemoryCache = true
 
-	@JvmOverloads
 	@JvmStatic
 	@Synchronized
-	fun init(config: HttpConfig = HttpConfig.DEFAULT_CONFIG) {
+	fun init(config: HttpConfig.Builder.() -> Unit = {}) {
 
 		if (hasConfig) throw RuntimeException("Do not config again!!!")
 
-		this.httpConfig = config
+		this.httpConfig = HttpConfig.Builder().apply(config).build()
 
 		cookieMap = object : LinkedHashMap<URI, List<HttpCookie>>() {
 			override fun removeEldestEntry(eldest: MutableMap.MutableEntry<URI, List<HttpCookie>>?): Boolean {
-				return size >= config.httpCookieHandler.maxCookieCount()
+				return size >= httpConfig.httpCookieHandler.maxCookieCount()
 			}
 		}
 
@@ -59,18 +58,18 @@ object EasyHttp {
 			cacheFile = httpConfig.httpCacheHandler.fileCache
 		}
 
-		okHttpClient = OkHttpClient.Builder().proxy(config.proxy)
-			.readTimeout(config.readTimeOut, TimeUnit.MILLISECONDS)
-			.connectTimeout(config.connectTimeout, TimeUnit.MILLISECONDS)
-			.hostnameVerifier(config.hostnameVerifier)
-			.sslSocketFactory(config.sslSocketFactory, config.x509TrustManager)
+		okHttpClient = OkHttpClient.Builder().proxy(httpConfig.proxy)
+			.readTimeout(httpConfig.readTimeOut, TimeUnit.MILLISECONDS)
+			.connectTimeout(httpConfig.connectTimeout, TimeUnit.MILLISECONDS)
+			.hostnameVerifier(httpConfig.hostnameVerifier)
+			.sslSocketFactory(httpConfig.sslSocketFactory, httpConfig.x509TrustManager)
 			.dns(object : Dns {
 				override fun lookup(hostname: String): List<InetAddress> {
 					return httpConfig.dns(hostname).toList()
 				}
 			})
 			.cookieJar(object : CookieJar {
-				val cookieHandler = config.httpCookieHandler
+				val cookieHandler = httpConfig.httpCookieHandler
 				override fun loadForRequest(url: HttpUrl): List<Cookie> {
 					return if (!cookieHandler.useCookieForRequest(url.toUri())) emptyList() else run {
 						val cookieList = cookieMap[url.toUri()] ?: emptyList()
@@ -119,13 +118,13 @@ object EasyHttp {
 			})
 			.build()
 
-		urlConnectionClient = UrlConnectionClient.Builder().proxy(config.proxy)
-			.readTimeOut(config.readTimeOut)
-			.connectTimeOut(config.connectTimeout)
-			.hostNameVerifier(config.hostnameVerifier)
-			.sslSocketFactory(config.sslSocketFactory)
-			.x509TrustManager(config.x509TrustManager)
-			.dns(config.dns)
+		urlConnectionClient = UrlConnectionClient.Builder().proxy(httpConfig.proxy)
+			.readTimeOut(httpConfig.readTimeOut)
+			.connectTimeOut(httpConfig.connectTimeout)
+			.hostNameVerifier(httpConfig.hostnameVerifier)
+			.sslSocketFactory(httpConfig.sslSocketFactory)
+			.x509TrustManager(httpConfig.x509TrustManager)
+			.dns(httpConfig.dns)
 			.build().apply {
 				setInterceptor { urlConnectionReq ->
 					val headerMap = hashMapOf<String, List<String>>()
@@ -156,7 +155,7 @@ object EasyHttp {
 
 			override fun add(uri: URI, cookie: java.net.HttpCookie) {
 				val httpHandlerCookie = httpCookie2HttpHandlerCookie(cookie)
-				val eachUriCookieCount = config.httpCookieHandler.eachUriCookieCount(uri)
+				val eachUriCookieCount = httpConfig.httpCookieHandler.eachUriCookieCount(uri)
 				synchronized(EasyHttp::class) {
 					if (cookieMap.containsKey(uri)) {
 						val httpCookieList = cookieMap[uri]?.toMutableList() ?: arrayListOf()

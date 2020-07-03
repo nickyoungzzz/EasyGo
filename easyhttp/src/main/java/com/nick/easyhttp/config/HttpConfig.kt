@@ -35,11 +35,6 @@ class HttpConfig internal constructor(builder: Builder) {
 
 	fun newBuilder() = Builder(this)
 
-	companion object {
-		private const val TIMEOUT = 15000L
-		val DEFAULT_CONFIG = HttpConfig()
-	}
-
 	class Builder constructor() {
 		internal var proxy: Proxy = Proxy.NO_PROXY
 		internal var httpHandler: HttpHandler = HttpHandler.OK_HTTP_HANDLER
@@ -47,15 +42,15 @@ class HttpConfig internal constructor(builder: Builder) {
 		internal var sslSocketFactory: SSLSocketFactory = SslHelper.getSSLSocketFactory()
 		internal var x509TrustManager: X509TrustManager = SslHelper.getTrustManager()
 		internal var downloadHandler: DownloadHandler = DownloadHandler.OKIO_DOWNLOAD_HANDLER
-		internal var connectTimeOut: Long = TIMEOUT
-		internal var readTimeOut: Long = TIMEOUT
-		internal var writeTimeOut: Long = TIMEOUT
+		internal var connectTimeOut: Long = 15000L
+		internal var readTimeOut: Long = 15000L
+		internal var writeTimeOut: Long = 15000L
 		internal var before = fun(httpReq: HttpReq) = httpReq
 		internal var after = fun(_: HttpReq, httpResp: HttpResp) = httpResp
 		internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
 		internal var httpCookieHandler = HttpCookieHandler.NO_COOKIE
 		internal var httpCacheHandler = HttpCacheHandler.MEMORY_CACHE
-		internal var timeoutHandler = fun(_: String, _: Any?, _: String, _: Map<String, List<String>>): TimeoutConfig = TimeoutConfig.DEFAULT_CONFIG
+		internal var timeoutHandler = fun(_: String, _: Any?, _: String, _: Map<String, List<String>>): TimeoutConfig = TimeoutConfig()
 
 		constructor(httpConfig: HttpConfig) : this() {
 			this.proxy = httpConfig.proxy

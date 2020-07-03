@@ -12,7 +12,7 @@ import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.result.HttpResult
 import java.io.IOException
 
-class HttpSend internal constructor(var param: HttpParam) {
+class HttpEmitter internal constructor(var param: HttpParam) {
 
 	private var reqTag: Any? = null
 
@@ -26,7 +26,7 @@ class HttpSend internal constructor(var param: HttpParam) {
 
 	private lateinit var downParam: DownParam
 
-	fun tag(reqTag: Any) {
+	fun tag(reqTag: Any?) {
 		this.reqTag = reqTag
 	}
 
@@ -43,11 +43,11 @@ class HttpSend internal constructor(var param: HttpParam) {
 
 	private var afterExecute = fun(_: HttpReq, httpResp: HttpResp) = httpResp
 
-	fun beforeSend(before: (httpReq: HttpReq) -> HttpReq) {
+	fun whenLaunch(before: (httpReq: HttpReq) -> HttpReq) {
 		this.beforeExecute = before
 	}
 
-	fun beforeReply(after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) {
+	fun afterLaunch(after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) {
 		this.afterExecute = after
 	}
 
@@ -59,20 +59,20 @@ class HttpSend internal constructor(var param: HttpParam) {
 		return HttpReq.Builder().apply {
 			url(param.url)
 			reqMethod(param.reqMethod)
-			reqTag(reqTag)
+			reqTag(this@HttpEmitter.reqTag)
 			queryMap(param.queryMap)
 			fieldMap(param.fieldMap)
 			headerMap(param.headerMap)
 			multipartBody(param.multipartBody)
 			isMultiPart(param.isMultiPart)
 			jsonString(param.jsonString)
-			asDownload(asDownload)
+			asDownload(this@HttpEmitter.asDownload)
 		}.build()
 	}
 
-	fun extra(extra: HttpSend.() -> Unit) = apply(extra)
+	fun deploy(extra: HttpEmitter.() -> Unit) = apply(extra)
 
-	fun send(init: HttpResult.() -> Unit = {}): HttpResult {
+	fun launch(init: HttpResult.() -> Unit = {}): HttpResult {
 		val httpReq = beforeExecute(httpConfig.before(httpReq()))
 		val httpResp = afterExecute(httpReq, httpConfig.after(httpReq, httpHandler.execute(httpReq)))
 		val status = if (httpResp.exception != null) HttpStatus.EXCEPTION
@@ -81,7 +81,7 @@ class HttpSend internal constructor(var param: HttpParam) {
 	}
 
 	@JvmOverloads
-	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) = apply {
+	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) {
 		val source = downParam.desSource
 		val range = if (downParam.breakPoint && source.exists()) source.length() else 0
 		val httpResp = httpHandler.execute(httpReq().apply { headerMap["Range"] = "bytes=${range}-" })
@@ -96,7 +96,6 @@ class HttpSend internal constructor(var param: HttpParam) {
 		} else {
 			exc(httpResp.exception!!)
 		}
-		return this
 	}
 
 	fun cancelRequest() {
