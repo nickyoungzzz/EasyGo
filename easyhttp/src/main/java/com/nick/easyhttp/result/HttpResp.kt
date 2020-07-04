@@ -4,7 +4,7 @@ import java.io.InputStream
 
 class HttpResp internal constructor(val resp: String, val code: Int, val isSuccessful: Boolean,
                                     val headers: Map<String, List<String>>, val exception: Throwable?,
-                                    val contentLength: Long, val inputStream: InputStream?
+                                    val contentLength: Long, val inputStream: InputStream?, val url: String
 ) {
 	fun newBuilder() = Builder(this)
 
@@ -16,6 +16,7 @@ class HttpResp internal constructor(val resp: String, val code: Int, val isSucce
 		private val contentLength: Long = httpResp.contentLength
 		private val inputStream: InputStream? = httpResp.inputStream
 		private val realHeaders = HashMap<String, ArrayList<String>>()
+		private var url: String = httpResp.url
 
 		init {
 			httpResp.headers.forEach { (key, valueList) ->
@@ -37,6 +38,10 @@ class HttpResp internal constructor(val resp: String, val code: Int, val isSucce
 
 		fun isSuccessful(isSuccessful: Boolean) = apply {
 			this.isSuccessful = isSuccessful
+		}
+
+		fun url(url: String) = apply {
+			this.url = url
 		}
 
 		fun addHeader(key: String, value: String) = apply {
@@ -61,6 +66,6 @@ class HttpResp internal constructor(val resp: String, val code: Int, val isSucce
 			realHeaders.remove(key)
 		}
 
-		fun build(): HttpResp = HttpResp(resp, code, isSuccessful, realHeaders, exception, contentLength, inputStream)
+		fun build(): HttpResp = HttpResp(resp, code, isSuccessful, realHeaders, exception, contentLength, inputStream, url)
 	}
 }

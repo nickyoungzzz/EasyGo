@@ -15,12 +15,15 @@ class UrlConnectionHandler : HttpHandler {
 			.headerMap(httpReq.httpReqHead.headerMap).queryMap(httpReq.httpReqHead.queryMap)
 			.multipartBody(httpReq.httpReqBody.multipartBody).build()
 
-		val urlConnectionResp = EasyHttp.urlConnectionClient.proceed(urlConnectionReq.apply { this.headerMap["client-type"] = "UrlConnection" })
+		val urlConnectionResp = EasyHttp.urlConnectionClient.proceed(urlConnectionReq)
 		return HttpResp(urlConnectionResp.resp, urlConnectionResp.code, urlConnectionResp.isSuccessful,
-			urlConnectionResp.headers, urlConnectionResp.exception, urlConnectionResp.contentLength, urlConnectionResp.inputStream)
+			urlConnectionResp.headers, urlConnectionResp.exception, urlConnectionResp.contentLength, urlConnectionResp.inputStream, urlConnectionResp.url)
 	}
 
 	override fun cancel() {
 		EasyHttp.urlConnectionClient.cancel()
 	}
+
+	override val requestClient: String
+		get() = "UrlConnection"
 }

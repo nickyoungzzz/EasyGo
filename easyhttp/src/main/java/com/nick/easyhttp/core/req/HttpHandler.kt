@@ -8,6 +8,7 @@ import com.nick.easyhttp.result.HttpResp
 interface HttpHandler {
 	fun execute(httpReq: HttpReq): HttpResp
 	fun cancel()
+	val requestClient: String
 
 	companion object {
 		@JvmField

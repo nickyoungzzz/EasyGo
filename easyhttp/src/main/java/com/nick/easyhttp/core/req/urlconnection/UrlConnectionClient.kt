@@ -113,7 +113,7 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 	}
 
 	internal fun proceedInternal(urlConnectionReq: UrlConnectionReq): UrlConnectionResp {
-		if (urlConnectionReq.reqMethod in setOf(ReqMethod.GET, ReqMethod.GET_FORM, ReqMethod.HEAD)) {
+		if (urlConnectionReq.reqMethod in setOf(ReqMethod.GET_FORM, ReqMethod.HEAD)) {
 			urlConnectionReq.fieldMap.forEach { (key, value) ->
 				urlConnectionReq.queryMap[key] = value
 			}
@@ -192,6 +192,7 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 				.headers(connection.headerFields)
 				.contentLength(connection.contentLength.toLong())
 				.resp(resp)
+				.url(connection.url.toString())
 			if (!urlConnectionReq.asDownload) {
 				inputStream.close()
 			}

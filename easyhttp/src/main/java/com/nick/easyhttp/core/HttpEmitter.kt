@@ -56,6 +56,9 @@ class HttpEmitter internal constructor(var param: HttpParam) {
 	private fun httpReq(): HttpReq {
 		return HttpReq(param.url, param.reqMethod, this@HttpEmitter.reqTag, HttpReqHead(param.headerMap, param.queryMap),
 			HttpReqBody(param.fieldMap, param.multipartBody, param.isMultiPart, param.jsonString), this@HttpEmitter.asDownload)
+			.let {
+				it.newBuilder().httpReqHead(it.httpReqHead.newBuilder().addHeader("request-client", httpHandler.requestClient).build()).build()
+			}
 	}
 
 	fun deploy(extra: HttpEmitter.() -> Unit) = apply(extra)

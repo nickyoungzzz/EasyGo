@@ -11,6 +11,7 @@ class UrlConnectionResp internal constructor(builder: Builder) {
 	val exception = builder.exception
 	val contentLength = builder.contentLength
 	val inputStream: InputStream? = builder.inputStream
+	val url: String = builder.url
 
 	fun newBuilder() = Builder(this)
 
@@ -23,6 +24,7 @@ class UrlConnectionResp internal constructor(builder: Builder) {
 		internal var exception: Throwable? = null
 		internal var contentLength: Long = 0
 		internal var inputStream: InputStream? = null
+		internal var url: String = ""
 
 		internal constructor(urlConnectionResp: UrlConnectionResp) : this() {
 			this.resp = urlConnectionResp.resp
@@ -32,6 +34,7 @@ class UrlConnectionResp internal constructor(builder: Builder) {
 			this.exception = urlConnectionResp.exception
 			this.contentLength = urlConnectionResp.contentLength
 			this.inputStream = urlConnectionResp.inputStream
+			this.url = urlConnectionResp.url
 		}
 
 		fun resp(resp: String) = apply {
@@ -60,6 +63,10 @@ class UrlConnectionResp internal constructor(builder: Builder) {
 
 		fun byteData(inputStream: InputStream) = apply {
 			this.inputStream = inputStream
+		}
+
+		fun url(url: String) = apply {
+			this.url = url
 		}
 
 		fun build(): UrlConnectionResp = UrlConnectionResp(this)

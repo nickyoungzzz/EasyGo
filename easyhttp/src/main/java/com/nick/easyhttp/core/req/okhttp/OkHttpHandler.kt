@@ -19,15 +19,15 @@ class OkHttpHandler : HttpHandler {
 
 	override fun execute(httpReq: HttpReq): HttpResp {
 		val httpReqHead = httpReq.httpReqHead
-		call = EasyHttp.okHttpClient.newCall(proceed(httpReq.newBuilder().httpReqHead(httpReqHead.newBuilder().addHeader("client-type", "OkHttp").build()).build()))
+		call = EasyHttp.okHttpClient.newCall(proceed(httpReq))
 		return try {
 			val response = call.execute()
 			val responseBody = response.body as ResponseBody
 			val resp = if (!httpReq.asDownload) responseBody.string() else ""
 			HttpResp(resp, response.code, response.isSuccessful, response.headers.toMultimap(), null,
-				responseBody.contentLength(), responseBody.byteStream())
+				responseBody.contentLength(), responseBody.byteStream(), response.request.url.toString())
 		} catch (e: IOException) {
-			HttpResp("", 0, false, emptyMap(), null, 0, null)
+			HttpResp("", 0, false, emptyMap(), null, 0, null, httpReq.url)
 		}
 	}
 
@@ -36,6 +36,9 @@ class OkHttpHandler : HttpHandler {
 			call.cancel()
 		}
 	}
+
+	override val requestClient: String
+		get() = "OkHttp"
 
 	private fun proceed(httpReq: HttpReq): Request {
 		val jsonBody = httpReq.httpReqBody.jsonString.toRequestBody("Content-Type:application/json;charset=utf-8".toMediaTypeOrNull())

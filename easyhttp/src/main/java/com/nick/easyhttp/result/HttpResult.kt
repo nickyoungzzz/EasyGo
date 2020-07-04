@@ -16,7 +16,7 @@ data class HttpResult internal constructor(val code: Int, val headers: Map<Strin
 		if (httpStatus == HttpStatus.EXCEPTION) e()
 	}
 
-	fun <T, F, E> result(s: Result<T, F, E>.() -> Unit): Result<T, F, E> {
+	fun <T, F, E> analysis(s: Result<T, F, E>.() -> Unit): Result<T, F, E> {
 		return Result<T, F, E>(code, headers, resp, throwable, httpStatus).apply(s)
 	}
 }
