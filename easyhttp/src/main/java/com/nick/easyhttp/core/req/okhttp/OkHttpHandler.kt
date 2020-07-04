@@ -18,7 +18,8 @@ class OkHttpHandler : HttpHandler {
 	private lateinit var call: Call
 
 	override fun execute(httpReq: HttpReq): HttpResp {
-		call = EasyHttp.okHttpClient.newCall(proceed(httpReq.apply { this.httpReqHead.addOrReplaceHeader("client-type", "OkHttp") }))
+		val httpReqHead = httpReq.httpReqHead
+		call = EasyHttp.okHttpClient.newCall(proceed(httpReq.newBuilder().httpReqHead(httpReqHead.newBuilder().addHeader("client-type", "OkHttp").build()).build()))
 		return try {
 			val response = call.execute()
 			val responseBody = response.body as ResponseBody
@@ -43,8 +44,9 @@ class OkHttpHandler : HttpHandler {
 			when (httpReq.reqMethod) {
 				ReqMethod.POST -> post(jsonBody)
 				ReqMethod.GET_FORM, ReqMethod.GET -> {
+					val httpReqHeadBuilder = httpReq.httpReqHead.newBuilder()
 					httpReq.httpReqBody.fieldMap.forEach { (key, value) ->
-						httpReq.httpReqHead.addOrReplaceHeader(key, value)
+						httpReqHeadBuilder.addHeader(key, value)
 					}
 					get()
 				}
@@ -69,7 +71,7 @@ class OkHttpHandler : HttpHandler {
 	}
 
 	// 获取表单请求的RequestBody
-	private fun form(fieldMap: HashMap<String, String>): FormBody {
+	private fun form(fieldMap: Map<String, String>): FormBody {
 		val formBodyBuilder = FormBody.Builder()
 		if (!fieldMap.isNullOrEmpty()) {
 			fieldMap.forEach {
@@ -80,7 +82,7 @@ class OkHttpHandler : HttpHandler {
 	}
 
 	// 获取多请求体的RequestBody
-	private fun multiPart(multipartBodyMap: HashMap<String, Any>): MultipartBody {
+	private fun multiPart(multipartBodyMap: Map<String, Any>): MultipartBody {
 		val multipartBody = MultipartBody.Builder().setType(MultipartBody.FORM)
 		multipartBodyMap.forEach {
 			if (it.value is String) {

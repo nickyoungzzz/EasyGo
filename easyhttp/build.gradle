@@ -5,8 +5,8 @@ apply plugin: 'kotlin'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.squareup.okhttp3:okhttp:4.5.0'
-    implementation 'com.squareup.okio:okio:2.5.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.7.2'
+    implementation 'com.squareup.okio:okio:2.7.0-alpha.lockfree.2'
 }
 
 sourceCompatibility = "8"
@@ -16,7 +16,7 @@ publish {
     userOrg = 'niekai'
     groupId = 'com.nick.common'
     artifactId = 'easyhttp'
-    publishVersion = '1.1.5'
+    publishVersion = '1.2.0'
     desc = 'this is a lib created with kotlin/okhttp which can be used to call http request'
     website = 'https://github.com/nickyoungzzz/EasyHttp'
 }

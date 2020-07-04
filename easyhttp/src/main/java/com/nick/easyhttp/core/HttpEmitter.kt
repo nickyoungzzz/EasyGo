@@ -71,7 +71,8 @@ class HttpEmitter internal constructor(var param: HttpParam) {
 	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) {
 		val source = downParam.desSource
 		val range = if (downParam.breakPoint && source.exists()) source.length() else 0
-		val httpResp = httpHandler.execute(httpReq().also { it.httpReqHead.addOrReplaceHeader("Range", "bytes=${range}-") })
+		val httpReqHead = httpReq().httpReqHead
+		val httpResp = httpHandler.execute(httpReq().newBuilder().httpReqHead(httpReqHead.newBuilder().addHeader("Range", "bytes=${range}-").build()).build())
 		if (httpResp.isSuccessful) {
 			try {
 				downloadHandler.saveFile(httpResp.inputStream!!, downParam, httpResp.contentLength) { state ->
