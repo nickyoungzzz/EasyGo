@@ -42,17 +42,28 @@ implementation 'com.nick.common:easyhttp:1.2.0'
 		readTimeOut(20000L) // 设置读取时间，默认15s，单位为毫秒
 		proxy(Proxy.NO_PROXY) // 设置代理，默认不需要代理
 		dns { host: String -> InetAddress.getAllByName(host) } // 自定义dns， 默认为系统dns解析
-		hostNameVerifier { hostname, session -> true } // 自定义主机名验证，默认为不验证
+		// 自定义主机名验证，默认为不验证
+		hostNameVerifier { hostname, session ->
+			true
+		}
 		sslSocketFactory(SslHelper.getSSLSocketFactory()) // 自定义证书，使用默认证书
-		beforeSend { httpReq -> httpReq } // 请求之前（全局配置，可对请求的信息进行调整，对所有请求生效）
-		afterReply { httpReq, httpResp -> httpResp }// 请求之后（全局配置，对请求返回的信息进行调整，对所有请求生效）
-		timeoutHandler { url, tag, method, headers -> TimeoutConfig() } // 有条件的进行超时配置
+		// 请求之前（全局配置，可对请求的信息进行调整，对所有请求生效）
+		beforeSend { httpReq ->
+			httpReq
+		}
+		// 请求之后（全局配置，对请求返回的信息进行调整，对所有请求生效）
+		afterReply { httpReq, httpResp ->
+			httpResp
+		}
+		timeoutHandler { url, tag, method, headers ->
+			TimeoutConfig()
+		} // 有条件的进行超时配置
 		build()
 	}
 ```
 #### 2、发送请求		
 ```
-// 比如当前以post请求方式
+  // 比如当前为post请求方式      
 	val result = httpPost {
 		url("https://www.baidu.com/app/search") // 配置请求的url
 		// 配置头
@@ -88,21 +99,43 @@ implementation 'com.nick.common:easyhttp:1.2.0'
 	}.deploy {
 		httpHandler(HttpHandler.OK_HTTP_HANDLER) // 配置网络层的HttpHandler
 		tag("tag") // 配置请求的tag
-		whenLaunch { httpReq -> httpReq } // 请求之前（单个配置，可对当前请求的信息进行调整，对单个请求生效）
-		afterLaunch { httpReq, httpResp -> httpResp } // 请求之后（单个配置，对当前请求返回的信息进行调整，对单个请求生效）
+		// 请求之前（单个配置，可对当前请求的信息进行调整，对单个请求生效）
+		whenLaunch { httpReq ->
+			httpReq
+		}
+		// 请求之后（单个配置，对当前请求返回的信息进行调整，对单个请求生效）
+		afterLaunch { httpReq, httpResp -> httpResp }
 		// 当前是否是下载文件，默认不是
 		asDownload {
 			source("C://file") // 文件下载位置
 			breakpoint(true) // 是否断点，默认不断点
 		}
-	}.launch { // 若为下载，需调用download
-		success { } // 请求成功之后的回调
-		error { } // 请求失败之后的回调
-		exception { } // 请求异常之后的回调
+	}.launch {
+		// 请求成功之后的回调
+		success {
+
+		}
+		// 请求失败之后的回调
+		error {
+
+		}
+		// 请求异常之后的回调
+		exception {
+
+		}
 	}.analysis<Int, String, RuntimeException> {
-		success { r -> r.length } // 请求成功时数据的转换（仅为示意）
-		error { r -> r.substringAfterLast("/") } // 请求失败时数据的转换（仅为示意）
-		exception { r -> RuntimeException(r) } // 请求异常时数据的转换（仅为示意）
+		// 请求成功时数据的转换（仅为示意）
+		success { r ->
+			r.length
+		}
+		// 请求失败时数据的转换（仅为示意）
+		error { r ->
+			r.substringAfterLast("/")
+		}
+		// 请求异常时数据的转换（仅为示意）
+		exception { r ->
+			RuntimeException(r)
+		}
 	}.also {
 		println(it.code) // http code
 		println(it.success) // 请求成功转换后的数据
@@ -110,7 +143,6 @@ implementation 'com.nick.common:easyhttp:1.2.0'
 		println(it.headers) // 清求返回的header
 		// ......
 	}
-	
 ```
 ### 三、注意事项
 1、该库未加入线程调度机制，可使用RxJava、Kotlin协程（推荐）、ThreadPool开启的线程中进行网络请求的调用；
