@@ -10,7 +10,7 @@ import com.nick.easyhttp.core.req.HttpHandler
 import com.nick.easyhttp.result.*
 import java.io.IOException
 
-class HttpEmitter internal constructor(var param: HttpParam) {
+class HttpEmitter internal constructor(private val param: HttpParam) {
 
 	private var reqTag: Any? = null
 
@@ -74,8 +74,7 @@ class HttpEmitter internal constructor(var param: HttpParam) {
 	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) {
 		val source = downParam.desSource
 		val range = if (downParam.breakPoint && source.exists()) source.length() else 0
-		val httpReqHead = httpReq().httpReqHead
-		val httpResp = httpHandler.execute(httpReq().newBuilder().httpReqHead(httpReqHead.newBuilder().addHeader("Range", "bytes=${range}-").build()).build())
+		val httpResp = httpHandler.execute(httpReq().newBuilder().httpReqHead(httpReq().httpReqHead.newBuilder().addHeader("Range", "bytes=${range}-").build()).build())
 		if (httpResp.isSuccessful) {
 			try {
 				downloadHandler.saveFile(httpResp.inputStream!!, downParam, httpResp.contentLength) { state ->
@@ -89,7 +88,7 @@ class HttpEmitter internal constructor(var param: HttpParam) {
 		}
 	}
 
-	fun cancelRequest() {
+	fun cancel() {
 		httpHandler.cancel()
 		if (asDownload) {
 			downloadHandler.cancel()

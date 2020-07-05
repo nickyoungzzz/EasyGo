@@ -2,15 +2,15 @@ package com.nick.easyhttp.core.param
 
 import com.nick.easyhttp.core.ReqMethod
 
-class HttpParam constructor(internal var reqMethod: ReqMethod) {
+class HttpParam constructor(internal val reqMethod: ReqMethod) {
 
 	internal var url: String = ""
 
-	internal var queryMap = hashMapOf<String, String>()
+	internal val queryMap = hashMapOf<String, String>()
 
-	internal var headerMap = hashMapOf<String, String>()
+	internal val headerMap = hashMapOf<String, String>()
 
-	internal var fieldMap = hashMapOf<String, String>()
+	internal val fieldMap = hashMapOf<String, String>()
 
 	internal val multipartBody = hashMapOf<String, Any>()
 

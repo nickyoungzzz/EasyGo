@@ -2,7 +2,7 @@ package com.nick.easyhttp.result
 
 import com.nick.easyhttp.core.HttpStatus
 
-data class HttpResult internal constructor(val code: Int, val headers: Map<String, List<String>>, val resp: String, val throwable: Throwable?, val httpStatus: HttpStatus) {
+class HttpResult internal constructor(val code: Int, val headers: Map<String, List<String>>, val resp: String, val throwable: Throwable?, val httpStatus: HttpStatus) {
 
 	fun success(t: () -> Unit) {
 		if (httpStatus == HttpStatus.SUCCESS) t()
@@ -21,11 +21,12 @@ data class HttpResult internal constructor(val code: Int, val headers: Map<Strin
 	}
 }
 
-class Result<T, F, E> constructor(var code: Int, var headers: Map<String, List<String>>, private val resp: String, private val throwable: Throwable?, private val httpStatus: HttpStatus) {
+@Suppress("UNCHECKED_CAST")
+class Result<T, F, E> constructor(val code: Int, val headers: Map<String, List<String>>, private val resp: String, private val throwable: Throwable?, private val httpStatus: HttpStatus) {
 
-	var success: T? = null
-	var error: F? = null
-	var exception: E? = null
+	var success: T? = if (httpStatus == HttpStatus.SUCCESS) resp as T else null
+	var error: F? = if (httpStatus == HttpStatus.ERROR) resp as F else null
+	var exception: E? = if (httpStatus == HttpStatus.ERROR) throwable as E else null
 
 	fun success(t: (r: String) -> T) {
 		success = if (httpStatus == HttpStatus.SUCCESS) t(resp) else null
