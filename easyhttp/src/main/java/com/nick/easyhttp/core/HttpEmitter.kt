@@ -7,7 +7,12 @@ import com.nick.easyhttp.core.download.DownState
 import com.nick.easyhttp.core.download.DownloadHandler
 import com.nick.easyhttp.core.param.HttpParam
 import com.nick.easyhttp.core.req.HttpHandler
-import com.nick.easyhttp.result.*
+import com.nick.easyhttp.core.req.HttpReqInterceptor
+import com.nick.easyhttp.core.req.HttpRespInterceptor
+import com.nick.easyhttp.result.HttpReq
+import com.nick.easyhttp.result.HttpReqBody
+import com.nick.easyhttp.result.HttpReqHead
+import com.nick.easyhttp.result.HttpResult
 import java.io.IOException
 
 class HttpEmitter internal constructor(private val param: HttpParam) {
@@ -24,6 +29,10 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 
 	private lateinit var downParam: DownParam
 
+	private val httpReqInterceptors = ArrayList<HttpReqInterceptor>()
+
+	private val httpRespInterceptors = ArrayList<HttpRespInterceptor>()
+
 	fun tag(reqTag: Any?) {
 		this.reqTag = reqTag
 	}
@@ -37,16 +46,12 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 		this.httpHandler = httpHandler
 	}
 
-	private var beforeExecute = fun(httpReq: HttpReq): HttpReq = httpReq
-
-	private var afterExecute = fun(_: HttpReq, httpResp: HttpResp) = httpResp
-
-	fun whenLaunch(before: (httpReq: HttpReq) -> HttpReq) {
-		this.beforeExecute = before
+	fun whenLaunch(httpReqInterceptor: HttpReqInterceptor) {
+		this.httpReqInterceptors.add(httpReqInterceptor)
 	}
 
-	fun afterLaunch(after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) {
-		this.afterExecute = after
+	fun afterLaunch(httpRespInterceptor: HttpRespInterceptor) {
+		this.httpRespInterceptors.add(httpRespInterceptor)
 	}
 
 	fun downloadHandler(downloadHandler: DownloadHandler) {
@@ -64,8 +69,14 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 	fun deploy(extra: HttpEmitter.() -> Unit) = apply(extra)
 
 	fun launch(init: HttpResult.() -> Unit = {}): HttpResult {
-		val httpReq = beforeExecute(httpConfig.before(httpReq()))
-		val httpResp = afterExecute(httpReq, httpConfig.after(httpReq, httpHandler.execute(httpReq)))
+		var httpReq = httpReq()
+		httpReqInterceptors.apply { addAll(0, httpConfig.httpReqInterceptors) }.forEach { httpReqInterceptor ->
+			httpReq = httpReqInterceptor.intercept(httpReq)
+		}
+		var httpResp = httpHandler.execute(httpReq)
+		httpRespInterceptors.apply { addAll(0, httpConfig.httpRespInterceptors) }.forEach { httpRespInterceptor ->
+			httpResp = httpRespInterceptor.intercept(httpReq, httpResp)
+		}
 		val status = if (httpResp.exception != null) HttpStatus.EXCEPTION
 		else (if (httpResp.isSuccessful) HttpStatus.SUCCESS else HttpStatus.ERROR)
 		return HttpResult(httpResp.code, httpResp.headers, httpResp.resp, httpResp.exception, status).apply(init)

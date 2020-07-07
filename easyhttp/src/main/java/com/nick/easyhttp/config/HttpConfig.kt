@@ -4,8 +4,8 @@ import com.nick.easyhttp.core.cache.HttpCacheHandler
 import com.nick.easyhttp.core.cookie.HttpCookieHandler
 import com.nick.easyhttp.core.download.DownloadHandler
 import com.nick.easyhttp.core.req.HttpHandler
-import com.nick.easyhttp.result.HttpReq
-import com.nick.easyhttp.result.HttpResp
+import com.nick.easyhttp.core.req.HttpReqInterceptor
+import com.nick.easyhttp.core.req.HttpRespInterceptor
 import com.nick.easyhttp.util.SslHelper
 import java.net.InetAddress
 import java.net.Proxy
@@ -15,21 +15,21 @@ import javax.net.ssl.X509TrustManager
 
 class HttpConfig internal constructor(builder: Builder) {
 
-	var proxy = builder.proxy
-	var httpHandler = builder.httpHandler
-	var hostnameVerifier = builder.hostNameVerifier
-	var sslSocketFactory = builder.sslSocketFactory
-	var x509TrustManager = builder.x509TrustManager
-	var downLoadHandler = builder.downloadHandler
-	var connectTimeout = builder.connectTimeOut
-	var readTimeOut = builder.readTimeOut
-	var writeTimeOut = builder.writeTimeOut
-	var before = builder.before
-	var after = builder.after
-	var dns = builder.dns
-	var httpCookieHandler = builder.httpCookieHandler
-	var httpCacheHandler = builder.httpCacheHandler
-	var timeoutHandler = builder.timeoutHandler
+	val proxy = builder.proxy
+	val httpHandler = builder.httpHandler
+	val hostnameVerifier = builder.hostNameVerifier
+	val sslSocketFactory = builder.sslSocketFactory
+	val x509TrustManager = builder.x509TrustManager
+	val downLoadHandler = builder.downloadHandler
+	val connectTimeout = builder.connectTimeOut
+	val readTimeOut = builder.readTimeOut
+	val writeTimeOut = builder.writeTimeOut
+	val dns = builder.dns
+	val httpCookieHandler = builder.httpCookieHandler
+	val httpCacheHandler = builder.httpCacheHandler
+	val timeoutHandler = builder.timeoutHandler
+	val httpReqInterceptors = builder.httpReqInterceptors
+	val httpRespInterceptors = builder.httpRespInterceptors
 
 	constructor() : this(Builder())
 
@@ -45,12 +45,12 @@ class HttpConfig internal constructor(builder: Builder) {
 		internal var connectTimeOut: Long = 15000L
 		internal var readTimeOut: Long = 15000L
 		internal var writeTimeOut: Long = 15000L
-		internal var before = fun(httpReq: HttpReq) = httpReq
-		internal var after = fun(_: HttpReq, httpResp: HttpResp) = httpResp
 		internal var dns = fun(host: String): Array<InetAddress> = InetAddress.getAllByName(host)
 		internal var httpCookieHandler = HttpCookieHandler.NO_COOKIE
 		internal var httpCacheHandler = HttpCacheHandler.MEMORY_CACHE
 		internal var timeoutHandler = fun(_: String, _: Any?, _: String, _: Map<String, List<String>>): TimeoutConfig = TimeoutConfig()
+		internal val httpReqInterceptors = ArrayList<HttpReqInterceptor>()
+		internal val httpRespInterceptors = ArrayList<HttpRespInterceptor>()
 
 		constructor(httpConfig: HttpConfig) : this() {
 			this.proxy = httpConfig.proxy
@@ -62,8 +62,6 @@ class HttpConfig internal constructor(builder: Builder) {
 			this.connectTimeOut = httpConfig.connectTimeout
 			this.readTimeOut = httpConfig.readTimeOut
 			this.writeTimeOut = httpConfig.writeTimeOut
-			this.before = httpConfig.before
-			this.after = httpConfig.after
 			this.dns = httpConfig.dns
 			this.httpCookieHandler = httpConfig.httpCookieHandler
 			this.httpCacheHandler = httpConfig.httpCacheHandler
@@ -87,9 +85,9 @@ class HttpConfig internal constructor(builder: Builder) {
 
 		fun writeTimeOut(writeTimeOut: Long) = apply { this.writeTimeOut = writeTimeOut }
 
-		fun beforeSend(before: (httpReq: HttpReq) -> HttpReq) = apply { this.before = before }
+		fun beforeSend(httpReqInterceptor: HttpReqInterceptor) = apply { this.httpReqInterceptors.add(httpReqInterceptor) }
 
-		fun afterReply(after: (httpReq: HttpReq, httpResp: HttpResp) -> HttpResp) = apply { this.after = after }
+		fun afterReply(httpRespInterceptor: HttpRespInterceptor) = apply { this.httpRespInterceptors.add(httpRespInterceptor) }
 
 		fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
 
