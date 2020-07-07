@@ -104,7 +104,9 @@ implementation 'com.nick.common:easyhttp:1.2.0'
 			httpReq
 		}
 		// 请求之后（单个配置，对当前请求返回的信息进行调整，对单个请求生效）
-		afterLaunch { httpReq, httpResp -> httpResp }
+		afterLaunch { httpReq, httpResp ->
+		    httpResp
+		}
 		// 当前是否是下载文件，默认不是
 		asDownload {
 			source("C://file") // 文件下载位置
