@@ -18,7 +18,6 @@ class OkHttpHandler : HttpHandler {
 	private lateinit var call: Call
 
 	override fun execute(httpReq: HttpReq): HttpResp {
-		val httpReqHead = httpReq.httpReqHead
 		call = EasyHttp.okHttpClient.newCall(proceed(httpReq))
 		return try {
 			val response = call.execute()
