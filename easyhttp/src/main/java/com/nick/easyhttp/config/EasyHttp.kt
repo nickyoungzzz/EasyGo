@@ -33,6 +33,7 @@ object EasyHttp {
 	@Volatile
 	private var isMemoryCache = true
 
+	@JvmStatic
 	@Synchronized
 	fun init(config: HttpConfig.Builder.() -> Unit = {}) {
 

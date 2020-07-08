@@ -16,21 +16,21 @@
 
 7、框架进行了分层设计，请求数据装载层、网络请求层、数据解析层完全解耦分离；
 
-8、网络请求层设计了统一的接口，目前已内置OkHttp，HttpsUrlConnection，可自主实现IHttpHandler使用其他网络框架作为HTTP请求层；
+8、网络请求层设计了统一的接口，目前已内置OkHttp，HttpsUrlConnection，可自主实现HttpHandler使用其他网络框架作为HTTP请求层；
 
 9、可在全局配置网络请求层的Handler（默认为OkHttpHandler，基于OkHttp），可以在全局配置，也可以在每次网络请求时自由切换；
 
-10、文件下载时文件保存使用okio来读写，可以实现Downloadhandler自定义其他框架来进行文件的读写；
+10、文件下载时文件保存使用OkIo来读写，可以实现DownloadHandler自定义其他框架来进行文件的读写；
 
 11、支持动态配置各个请求的各自的超时时间，全局一次配置，各个请求全都生效；
 
-12、依赖库相当少，仅依赖OkHtt和Okio框架，接入成本较低；
+12、依赖库相当少，仅依赖OkHttp和OkIo框架，接入成本较低，jar包仅100多kb，十分轻量级；
 
 ......
 
 ### 一、添加依赖 
 ```
-implementation 'com.nick.common:easyhttp:1.2.0'
+implementation 'com.nick.common:easyhttp:1.2.1'
 ```
 ### 二、使用方法
 #### 1、全局配置
@@ -99,7 +99,7 @@ implementation 'com.nick.common:easyhttp:1.2.0'
 		// 单个请求拦截器（对当前请求进行拦截，只对当前请求生效），可添加多个
 		interceptor { chain ->
 		    val req = chain.request()
-		    return chain.proceed(red.newBuilder.addHeader("heder1", "value1").build())
+		    return chain.proceed(req.newBuilder.addHeader("heder1", "value1").build())
 		}
 		// 当前是否是下载文件，默认不是
 		asDownload {

@@ -3,8 +3,8 @@ package com.nick.easyhttp.result
 import com.nick.easyhttp.core.ReqMethod
 
 class HttpReq internal constructor(val url: String, val reqMethod: ReqMethod, val reqTag: Any?,
-								   val headerMap: Map<String, String>, val queryMap: Map<String, String>,
-								   val httpReqBody: HttpReqBody, var asDownload: Boolean
+                                   val headerMap: Map<String, String>, val queryMap: Map<String, String>,
+                                   val httpReqBody: HttpReqBody, var asDownload: Boolean
 ) {
 	fun newBuilder() = Builder(this)
 
