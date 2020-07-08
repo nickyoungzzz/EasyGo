@@ -46,7 +46,7 @@ class OkHttpHandler : HttpHandler {
 			when (httpReq.reqMethod) {
 				ReqMethod.POST -> post(jsonBody)
 				ReqMethod.GET_FORM, ReqMethod.GET -> {
-					val httpReqHeadBuilder = httpReq.httpReqHead.newBuilder()
+					val httpReqHeadBuilder = httpReq.newBuilder()
 					httpReq.httpReqBody.fieldMap.forEach { (key, value) ->
 						httpReqHeadBuilder.addHeader(key, value)
 					}
@@ -61,15 +61,15 @@ class OkHttpHandler : HttpHandler {
 				ReqMethod.PATCH_FORM -> patch(body)
 				ReqMethod.HEAD -> head()
 			}.apply {
-				httpReq.httpReqHead.headerMap.forEach { (key, value) -> addHeader(key, value) }
+				httpReq.headerMap.forEach { (key, value) -> addHeader(key, value) }
 				val regex = if (httpReq.url.contains("?")) "&" else "?"
-				val stringBuilder = StringBuilder(if (httpReq.httpReqHead.queryMap.isNotEmpty()) regex else "")
-				httpReq.httpReqHead.queryMap.forEach { (key, value) ->
+				val stringBuilder = StringBuilder(if (httpReq.queryMap.isNotEmpty()) regex else "")
+				httpReq.queryMap.forEach { (key, value) ->
 					stringBuilder.append("$key=$value&")
 				}
 				url("${httpReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
 			}
-		}.cacheControl(CacheControl.parse(httpReq.httpReqHead.headerMap.toHeaders())).build()
+		}.cacheControl(CacheControl.parse(httpReq.headerMap.toHeaders())).build()
 	}
 
 	// 获取表单请求的RequestBody

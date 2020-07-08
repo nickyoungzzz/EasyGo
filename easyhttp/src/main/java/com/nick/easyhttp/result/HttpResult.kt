@@ -2,7 +2,7 @@ package com.nick.easyhttp.result
 
 import com.nick.easyhttp.core.HttpStatus
 
-class HttpResult internal constructor(val code: Int, val headers: Map<String, List<String>>, val resp: String, val throwable: Throwable?, val httpStatus: HttpStatus) {
+class HttpResult internal constructor(val url: String, val code: Int, val headers: Map<String, List<String>>, val resp: String, val throwable: Throwable?, val httpStatus: HttpStatus) {
 
 	fun success(t: () -> Unit) {
 		if (httpStatus == HttpStatus.SUCCESS) t()
@@ -16,7 +16,7 @@ class HttpResult internal constructor(val code: Int, val headers: Map<String, Li
 		if (httpStatus == HttpStatus.EXCEPTION) e()
 	}
 
-	fun <T, F, E> analysis(s: Result<T, F, E>.() -> Unit): Result<T, F, E> {
+	fun <T, F, E> transform(s: Result<T, F, E>.() -> Unit): Result<T, F, E> {
 		return Result<T, F, E>(code, headers, resp, throwable, httpStatus).apply(s)
 	}
 }

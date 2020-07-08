@@ -3,9 +3,8 @@ package com.nick.easyhttp.config
 import com.nick.easyhttp.core.cache.HttpCacheHandler
 import com.nick.easyhttp.core.cookie.HttpCookieHandler
 import com.nick.easyhttp.core.download.DownloadHandler
+import com.nick.easyhttp.core.interceptor.HttpInterceptor
 import com.nick.easyhttp.core.req.HttpHandler
-import com.nick.easyhttp.core.req.HttpReqInterceptor
-import com.nick.easyhttp.core.req.HttpRespInterceptor
 import com.nick.easyhttp.util.SslHelper
 import java.net.InetAddress
 import java.net.Proxy
@@ -28,8 +27,7 @@ class HttpConfig internal constructor(builder: Builder) {
 	val httpCookieHandler = builder.httpCookieHandler
 	val httpCacheHandler = builder.httpCacheHandler
 	val timeoutHandler = builder.timeoutHandler
-	val httpReqInterceptors = builder.httpReqInterceptors
-	val httpRespInterceptors = builder.httpRespInterceptors
+	val httpInterceptors = builder.httpInterceptors
 
 	constructor() : this(Builder())
 
@@ -49,8 +47,7 @@ class HttpConfig internal constructor(builder: Builder) {
 		internal var httpCookieHandler = HttpCookieHandler.NO_COOKIE
 		internal var httpCacheHandler = HttpCacheHandler.MEMORY_CACHE
 		internal var timeoutHandler = fun(_: String, _: Any?, _: String, _: Map<String, List<String>>): TimeoutConfig = TimeoutConfig()
-		internal val httpReqInterceptors = ArrayList<HttpReqInterceptor>()
-		internal val httpRespInterceptors = ArrayList<HttpRespInterceptor>()
+		internal val httpInterceptors = ArrayList<HttpInterceptor>()
 
 		constructor(httpConfig: HttpConfig) : this() {
 			this.proxy = httpConfig.proxy
@@ -65,6 +62,7 @@ class HttpConfig internal constructor(builder: Builder) {
 			this.dns = httpConfig.dns
 			this.httpCookieHandler = httpConfig.httpCookieHandler
 			this.httpCacheHandler = httpConfig.httpCacheHandler
+			this.httpInterceptors.addAll(httpConfig.httpInterceptors)
 		}
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
@@ -85,9 +83,7 @@ class HttpConfig internal constructor(builder: Builder) {
 
 		fun writeTimeOut(writeTimeOut: Long) = apply { this.writeTimeOut = writeTimeOut }
 
-		fun beforeSend(httpReqInterceptor: HttpReqInterceptor) = apply { this.httpReqInterceptors.add(httpReqInterceptor) }
-
-		fun afterReply(httpRespInterceptor: HttpRespInterceptor) = apply { this.httpRespInterceptors.add(httpRespInterceptor) }
+		fun interceptor(httpInterceptor: HttpInterceptor) = apply { this.httpInterceptors.add(httpInterceptor) }
 
 		fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
 

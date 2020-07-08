@@ -3,8 +3,8 @@ package com.nick.easyhttp.result
 import com.nick.easyhttp.core.ReqMethod
 
 class HttpReq internal constructor(val url: String, val reqMethod: ReqMethod, val reqTag: Any?,
-                                   val httpReqHead: HttpReqHead, val httpReqBody: HttpReqBody,
-                                   var asDownload: Boolean
+								   val headerMap: Map<String, String>, val queryMap: Map<String, String>,
+								   val httpReqBody: HttpReqBody, var asDownload: Boolean
 ) {
 	fun newBuilder() = Builder(this)
 
@@ -12,9 +12,19 @@ class HttpReq internal constructor(val url: String, val reqMethod: ReqMethod, va
 		private var url: String = httpReq.url
 		private var reqMethod: ReqMethod = httpReq.reqMethod
 		private var reqTag: Any? = httpReq.reqTag
-		private var httpReqHead: HttpReqHead = httpReq.httpReqHead
+		private val realHeaderMap = HashMap<String, String>()
+		private val realQueryMap = HashMap<String, String>()
 		private var httpReqBody: HttpReqBody = httpReq.httpReqBody
 		private var asDownload: Boolean = httpReq.asDownload
+
+		init {
+			httpReq.headerMap.forEach { (key, value) ->
+				realHeaderMap[key] = value
+			}
+			httpReq.queryMap.forEach { (key, value) ->
+				realQueryMap[key] = value
+			}
+		}
 
 		fun url(url: String) = apply { this.url = url }
 
@@ -24,11 +34,41 @@ class HttpReq internal constructor(val url: String, val reqMethod: ReqMethod, va
 
 		fun asDownload(asDownload: Boolean) = apply { this.asDownload = asDownload }
 
-		fun httpReqHead(httpReqHead: HttpReqHead) = apply { this.httpReqHead = httpReqHead }
-
 		fun httpReqBody(httpReqBody: HttpReqBody) = apply { this.httpReqBody = httpReqBody }
 
-		fun build() = HttpReq(url, reqMethod, reqTag, httpReqHead, httpReqBody, asDownload)
+		fun addHeader(key: String, value: String) = apply {
+			if (!realHeaderMap.containsKey(key)) {
+				realHeaderMap[key] = value
+			}
+		}
+
+		fun header(key: String, value: String) = apply {
+			if (realHeaderMap.containsKey(key)) {
+				realHeaderMap[key] = value
+			}
+		}
+
+		fun removeHeader(key: String) = apply {
+			realHeaderMap.remove(key)
+		}
+
+		fun addQuery(key: String, value: String) = apply {
+			if (!realQueryMap.containsKey(key)) {
+				realQueryMap[key] = value
+			}
+		}
+
+		fun query(key: String, value: String) = apply {
+			if (realQueryMap.containsKey(key)) {
+				realQueryMap[key] = value
+			}
+		}
+
+		fun removeQuery(key: String) = apply {
+			realQueryMap.remove(key)
+		}
+
+		fun build() = HttpReq(url, reqMethod, reqTag, realHeaderMap, realQueryMap, httpReqBody, asDownload)
 	}
 }
 
@@ -90,58 +130,4 @@ class HttpReqBody internal constructor(val fieldMap: Map<String, String>, val mu
 
 		fun build() = HttpReqBody(realFieldMap, realMultipartBody, isMultiPart, jsonString)
 	}
-}
-
-class HttpReqHead internal constructor(val headerMap: Map<String, String>, val queryMap: Map<String, String>) {
-
-	fun newBuilder() = Builder(this)
-
-	class Builder constructor(httpReqHead: HttpReqHead) {
-		private val realHeaderMap = HashMap<String, String>()
-		private val realQueryMap = HashMap<String, String>()
-
-		init {
-			httpReqHead.headerMap.forEach { (key, value) ->
-				realHeaderMap[key] = value
-			}
-			httpReqHead.queryMap.forEach { (key, value) ->
-				realQueryMap[key] = value
-			}
-		}
-
-		fun addHeader(key: String, value: String) = apply {
-			if (!realHeaderMap.containsKey(key)) {
-				realHeaderMap[key] = value
-			}
-		}
-
-		fun header(key: String, value: String) = apply {
-			if (realHeaderMap.containsKey(key)) {
-				realHeaderMap[key] = value
-			}
-		}
-
-		fun removeHeader(key: String) = apply {
-			realHeaderMap.remove(key)
-		}
-
-		fun addQuery(key: String, value: String) = apply {
-			if (!realQueryMap.containsKey(key)) {
-				realQueryMap[key] = value
-			}
-		}
-
-		fun query(key: String, value: String) = apply {
-			if (realQueryMap.containsKey(key)) {
-				realQueryMap[key] = value
-			}
-		}
-
-		fun removeQuery(key: String) = apply {
-			realQueryMap.remove(key)
-		}
-
-		fun build() = HttpReqHead(realHeaderMap, realQueryMap)
-	}
-
 }

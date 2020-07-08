@@ -12,7 +12,7 @@ class UrlConnectionHandler : HttpHandler {
 			.reqMethod(httpReq.reqMethod).reqTag(httpReq.reqTag).url(httpReq.url)
 			.asDownload(httpReq.asDownload).isMultiPart(httpReq.httpReqBody.isMultiPart)
 			.jsonString(httpReq.httpReqBody.jsonString).fieldMap(httpReq.httpReqBody.fieldMap)
-			.headerMap(httpReq.httpReqHead.headerMap).queryMap(httpReq.httpReqHead.queryMap)
+			.headerMap(httpReq.headerMap).queryMap(httpReq.queryMap)
 			.multipartBody(httpReq.httpReqBody.multipartBody).build()
 
 		val urlConnectionResp = EasyHttp.urlConnectionClient.proceed(urlConnectionReq)

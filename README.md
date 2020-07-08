@@ -47,14 +47,11 @@ implementation 'com.nick.common:easyhttp:1.2.0'
 			true
 		}
 		sslSocketFactory(SslHelper.getSSLSocketFactory()) // 自定义证书，使用默认证书
-		// 请求之前（全局配置，可对请求的信息进行调整，对所有请求生效）
-		beforeSend { httpReq ->
-			httpReq
-		}
-		// 请求之后（全局配置，对请求返回的信息进行调整，对所有请求生效）
-		afterReply { httpReq, httpResp ->
-			httpResp
-		}
+		// 全局请求拦截器（对全部请求进行拦截，对全部请求生效），可添加多个
+        interceptor { chain ->
+            val req = chain.request()
+            return chain.proceed(red.newBuilder().addQuery("query1", "value1").build())
+        }
 		timeoutHandler { url, tag, method, headers ->
 			TimeoutConfig()
 		} // 有条件的进行超时配置
@@ -99,13 +96,10 @@ implementation 'com.nick.common:easyhttp:1.2.0'
 	}.deploy {
 		httpHandler(HttpHandler.OK_HTTP_HANDLER) // 配置网络层的HttpHandler
 		tag("tag") // 配置请求的tag
-		// 请求之前（单个配置，可对当前请求的信息进行调整，对单个请求生效）
-		whenLaunch { httpReq ->
-			httpReq
-		}
-		// 请求之后（单个配置，对当前请求返回的信息进行调整，对单个请求生效）
-		afterLaunch { httpReq, httpResp ->
-		    httpResp
+		// 单个请求拦截器（对当前请求进行拦截，只对当前请求生效），可添加多个
+		interceptor { chain ->
+		    val req = chain.request()
+		    return chain.proceed(red.newBuilder.addHeader("heder1", "value1").build())
 		}
 		// 当前是否是下载文件，默认不是
 		asDownload {
@@ -125,7 +119,7 @@ implementation 'com.nick.common:easyhttp:1.2.0'
 		exception {
 
 		}
-	}.analysis<Int, String, RuntimeException> {
+	}.transform<Int, String, RuntimeException> {
 		// 请求成功时数据的转换（仅为示意）
 		success { r ->
 			r.length
