@@ -200,10 +200,10 @@ object EasyHttp {
 					}
 				return httpCookieList?.toMutableList() ?: arrayListOf()
 			}
-		}, CookiePolicy { uri, cookie ->
+		}) { uri, cookie ->
 			val httpHandlerCookie = httpCookie2HttpHandlerCookie(cookie)
 			httpConfig.httpCookieHandler.shouldSaveCookie(uri, httpHandlerCookie)
-		}))
+		})
 
 		ResponseCache.setDefault(object : ResponseCache() {
 			lateinit var objectInputStream: ObjectInputStream
