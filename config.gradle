@@ -1,8 +1,8 @@
-ext{
+ext {
 
     android = [
             compileSdkVersion: 29,
-            buildToolsVersion: '28.0.3',
+            buildToolsVersion: '29.0.3',
             applicationId    : "com.nick.base",
             minSdkVersion    : 19,
             targetSdkVersion : 28,
@@ -17,16 +17,16 @@ ext{
     ]
 
     dependencies = [
-            "retrofit"                       : "com.squareup.retrofit2:retrofit:${dependVersion.retrofit}",
-            "converter-scalars"              : "com.squareup.retrofit2:converter-scalars:${dependVersion.retrofit}",
-            "rxjava"                         : "io.reactivex.rxjava2:rxjava:${dependVersion.rxjava}",
-            "rxandroid"                      : "io.reactivex.rxjava2:rxandroid:${dependVersion.rxandroid}",
-            "adapter-rxjava2"                : "com.squareup.retrofit2:adapter-rxjava2:${dependVersion.retrofit}",
-            "kotlin-stdlib-jdk8"             : "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version",
-            "gson"                           : "com.google.code.gson:gson:2.8.6",
-            "converter-gson"                 : "com.squareup.retrofit2:converter-gson:${dependVersion.retrofit}",
-            "logging-interceptor"            : "com.squareup.okhttp3:logging-interceptor:4.4.1",
-            "kotlinx-coroutines-android"     : "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.5"
+            "retrofit"                  : "com.squareup.retrofit2:retrofit:${dependVersion.retrofit}",
+            "converter-scalars"         : "com.squareup.retrofit2:converter-scalars:${dependVersion.retrofit}",
+            "rxjava"                    : "io.reactivex.rxjava2:rxjava:${dependVersion.rxjava}",
+            "rxandroid"                 : "io.reactivex.rxjava2:rxandroid:${dependVersion.rxandroid}",
+            "adapter-rxjava2"           : "com.squareup.retrofit2:adapter-rxjava2:${dependVersion.retrofit}",
+            "kotlin-stdlib-jdk8"        : "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version",
+            "gson"                      : "com.google.code.gson:gson:2.8.6",
+            "converter-gson"            : "com.squareup.retrofit2:converter-gson:${dependVersion.retrofit}",
+            "logging-interceptor"       : "com.squareup.okhttp3:logging-interceptor:4.4.1",
+            "kotlinx-coroutines-android": "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.5"
     ]
 
 }
