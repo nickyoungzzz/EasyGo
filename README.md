@@ -30,7 +30,7 @@
 
 ### 一、添加依赖 
 ```
-implementation 'com.nick.common:easyhttp:1.2.2'
+implementation 'com.nick.common:easyhttp:1.2.3'
 ```
 ### 二、使用方法
 #### 1、全局配置

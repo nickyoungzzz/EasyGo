@@ -17,7 +17,7 @@ class HttpResult internal constructor(val url: String, val code: Int, val header
 	}
 
 	fun <T, F, E> transform(s: Result<T, F, E>.() -> Unit): Result<T, F, E> {
-		return Result<T, F, E>(code, headers, resp, url, throwable, httpStatus).apply(s)
+		return Result<T, F, E>(code, headers, url, resp, throwable, httpStatus).apply(s)
 	}
 }
 
