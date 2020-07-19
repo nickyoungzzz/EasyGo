@@ -17,26 +17,30 @@ class HttpResult internal constructor(val url: String, val code: Int, val header
 	}
 
 	fun <T, F, E> transform(s: Result<T, F, E>.() -> Unit): Result<T, F, E> {
-		return Result<T, F, E>(code, headers, resp, throwable, httpStatus).apply(s)
+		return Result<T, F, E>(code, headers, resp, url, throwable, httpStatus).apply(s)
 	}
 }
 
 @Suppress("UNCHECKED_CAST")
-class Result<T, F, E> constructor(val code: Int, val headers: Map<String, List<String>>, private val resp: String, private val throwable: Throwable?, private val httpStatus: HttpStatus) {
+class Result<T, F, E> constructor(val code: Int, val headers: Map<String, List<String>>, val url: String, private val resp: String, private val throwable: Throwable?, private val httpStatus: HttpStatus) {
 
-	var success: T? = if (httpStatus == HttpStatus.SUCCESS) resp as T else null
-	var error: F? = if (httpStatus == HttpStatus.ERROR) resp as F else null
-	var exception: E? = if (httpStatus == HttpStatus.ERROR) throwable as E else null
+	val isSuccess = httpStatus == HttpStatus.SUCCESS
+	val isError = httpStatus == HttpStatus.ERROR
+	val isException = httpStatus == HttpStatus.EXCEPTION
+
+	var success: T? = if (isSuccess) resp as T else null
+	var error: F? = if (isError) resp as F else null
+	var exception: E? = if (isException) throwable as E else null
 
 	fun success(t: (r: String) -> T) {
-		success = if (httpStatus == HttpStatus.SUCCESS) t(resp) else null
+		success = if (isSuccess) t(resp) else null
 	}
 
 	fun error(f: (r: String) -> F) {
-		error = if (httpStatus == HttpStatus.ERROR) f(resp) else null
+		error = if (isError) f(resp) else null
 	}
 
 	fun exception(e: (r: Throwable?) -> E) {
-		exception = if (httpStatus == HttpStatus.EXCEPTION) e(throwable) else null
+		exception = if (isException) e(throwable) else null
 	}
 }

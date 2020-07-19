@@ -1,5 +1,7 @@
 package com.nick.easyhttp.core.param
 
+interface ReqBody
+
 open class Params : ReqBody {
 	private val dataMap = hashMapOf<String, String>()
 	infix fun String.with(value: String) {
@@ -27,22 +29,6 @@ class Part : ReqBody {
 }
 
 class Multi constructor(var multi: Boolean = false) : ReqBody
-
-interface ReqBody
-
-class Head {
-	private val dataMapList = ArrayList<ReqBody>()
-
-	fun header(init: Header.() -> Unit) {
-		dataMapList.add(Header().apply(init))
-	}
-
-	fun query(init: Query.() -> Unit) {
-		dataMapList.add(Query().apply(init))
-	}
-
-	internal fun addTo(action: (body: ReqBody) -> Unit) = dataMapList.forEach { reqBody -> action(reqBody) }
-}
 
 class Body {
 	private val dataMapList = ArrayList<ReqBody>()

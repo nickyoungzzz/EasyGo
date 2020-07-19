@@ -22,13 +22,12 @@ class HttpParam constructor(internal val reqMethod: ReqMethod) {
 		this.url = url
 	}
 
-	fun head(init: Head.() -> Unit) {
-		Head().apply(init).addTo { body ->
-			when (body) {
-				is Header -> body.addTo { k, v -> headerMap[k] = v }
-				is Query -> body.addTo { k, v -> queryMap[k] = v }
-			}
-		}
+	fun header(init: Header.() -> Unit) {
+		Header().apply(init).addTo { k, v -> headerMap[k] = v }
+	}
+
+	fun query(init: Query.() -> Unit) {
+		Query().apply(init).addTo { k, v -> queryMap[k] = v }
 	}
 
 	fun body(init: Body.() -> Unit) {

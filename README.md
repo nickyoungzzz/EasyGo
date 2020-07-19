@@ -30,7 +30,7 @@
 
 ### 一、添加依赖 
 ```
-implementation 'com.nick.common:easyhttp:1.2.1'
+implementation 'com.nick.common:easyhttp:1.2.2'
 ```
 ### 二、使用方法
 #### 1、全局配置
@@ -63,19 +63,16 @@ implementation 'com.nick.common:easyhttp:1.2.1'
   // 比如当前为post请求方式      
 	val result = httpPost {
 		url("https://www.baidu.com/app/search") // 配置请求的url
-		// 配置头
-		head {
-			// 配置header
-			header {
-				"header1" with "value1"
-				"header2" with "value2"
-			}
-			// 配置url上的查询，url?query1=value1&query2=value2
-			query {
-				"query1" with "value1"
-				"query2" with "value2"
-			}
-		}
+        // 配置header
+        header {
+            "header1" with "value1"
+            "header2" with "value2"
+        }
+        // 配置url上的查询，url?query1=value1&query2=value2
+        query {
+            "query1" with "value1"
+            "query2" with "value2"
+        }
 		// 配置请求体
 		body {
 			// 配置表单数据
