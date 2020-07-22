@@ -26,7 +26,7 @@ class OkHttpHandler : HttpHandler {
 			HttpResp(resp, response.code, response.isSuccessful, response.headers.toMultimap(), null,
 				responseBody.contentLength(), responseBody.byteStream(), response.request.url.toString())
 		} catch (e: IOException) {
-			HttpResp("", 0, false, emptyMap(), null, 0, null, httpReq.url)
+			HttpResp("", 0, false, emptyMap(), e, 0, null, httpReq.url)
 		}
 	}
 

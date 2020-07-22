@@ -1,8 +1,6 @@
 package com.nick.easyhttp.core.req.urlconnection
 
 import com.nick.easyhttp.core.ReqMethod
-import com.nick.easyhttp.result.HttpReq
-import com.nick.easyhttp.result.HttpResp
 import com.nick.easyhttp.util.SslHelper
 import java.io.DataOutputStream
 import java.io.File
@@ -67,10 +65,6 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 			this.dns = urlConnectionClient.dns
 		}
 
-		private var beforeReq = fun(httpReq: HttpReq) = httpReq
-
-		private var afterReq = fun(_: HttpReq, httpResp: HttpResp) = httpResp
-
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
 
 		fun hostNameVerifier(hostNameVerifier: HostnameVerifier) = apply { this.hostNameVerifier = hostNameVerifier }
@@ -95,15 +89,17 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 	}
 
 	private fun makeDns(host: String, array: Array<InetAddress>) {
-
 		val netAddressClass: Class<InetAddress> = InetAddress::class.java
-		val field = netAddressClass.getDeclaredField("addressCache")
-		field.isAccessible = true
-		val obj = field[netAddressClass]
-		val cacheClass = obj.javaClass
-		val putMethod: Method = cacheClass.getDeclaredMethod("put", String::class.java, Array<InetAddress>::class.java)
-		putMethod.isAccessible = true
-		putMethod.invoke(obj, host, array)
+		try {
+			val field = netAddressClass.getDeclaredField("addressCache")
+			field.isAccessible = true
+			val obj = field[netAddressClass]
+			val cacheClass = obj.javaClass
+			val putMethod: Method = cacheClass.getDeclaredMethod("put", String::class.java, Array<InetAddress>::class.java)
+			putMethod.isAccessible = true
+			putMethod.invoke(obj, host, array)
+		} catch (e: NoSuchFieldException) {
+		}
 	}
 
 	private lateinit var connection: HttpsURLConnection
