@@ -2,7 +2,7 @@
 apply from: 'config.gradle'
 
 buildscript {
-    ext.kotlin_version = '1.4-M3'
+    ext.kotlin_version = '1.4.0-rc'
     repositories {
         maven { url 'https://jitpack.io' }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
