@@ -1,6 +1,6 @@
 package com.nick.easyhttp.core.req.okhttp
 
-import com.nick.easyhttp.config.EasyHttp
+import com.nick.easyhttp.config.EasyGo
 import com.nick.easyhttp.core.ReqMethod
 import com.nick.easyhttp.core.req.HttpHandler
 import com.nick.easyhttp.result.HttpReq
@@ -18,7 +18,7 @@ class OkHttpHandler : HttpHandler {
 	private lateinit var call: Call
 
 	override fun execute(httpReq: HttpReq): HttpResp {
-		call = EasyHttp.okHttpClient.newCall(proceed(httpReq))
+		call = EasyGo.okHttpClient.newCall(proceed(httpReq))
 		return try {
 			val response = call.execute()
 			val responseBody = response.body as ResponseBody

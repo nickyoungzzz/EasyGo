@@ -10,7 +10,7 @@ import java.io.*
 import java.net.*
 import java.util.concurrent.TimeUnit
 
-object EasyHttp {
+object EasyGo {
 
 	internal lateinit var okHttpClient: OkHttpClient
 		private set
@@ -35,12 +35,9 @@ object EasyHttp {
 
 	@JvmStatic
 	@Synchronized
-	fun init(config: HttpConfig.Builder.() -> Unit = {}) {
-
+	fun initialize(config: HttpConfig.Builder.() -> Unit = {}) {
 		if (hasConfig) throw RuntimeException("Do not config again!!!")
-
 		this.httpConfig = HttpConfig.Builder().apply(config).build()
-
 		hasConfig = true
 
 		cookieMap = object : LinkedHashMap<URI, List<HttpCookie>>() {
@@ -98,7 +95,7 @@ object EasyHttp {
 							.whenCreated(System.currentTimeMillis())
 							.build()
 					}.filter { httpHandlerCookie -> cookieHandler.shouldSaveCookie(uri, httpHandlerCookie) }
-					synchronized(EasyHttp::class) {
+					synchronized(EasyGo::class) {
 						cookieMap[uri] = httpHandlerCookies.apply {
 							val eachUriCookieCount = cookieHandler.eachUriCookieCount(uri)
 							if (this.size >= eachUriCookieCount) {
@@ -158,7 +155,7 @@ object EasyHttp {
 			override fun add(uri: URI, cookie: java.net.HttpCookie) {
 				val httpHandlerCookie = httpCookie2HttpHandlerCookie(cookie)
 				val eachUriCookieCount = httpConfig.httpCookieHandler.eachUriCookieCount(uri)
-				synchronized(EasyHttp::class) {
+				synchronized(EasyGo::class) {
 					if (cookieMap.containsKey(uri)) {
 						val httpCookieList = cookieMap[uri]?.toMutableList() ?: arrayListOf()
 						httpCookieList.add(httpHandlerCookie)

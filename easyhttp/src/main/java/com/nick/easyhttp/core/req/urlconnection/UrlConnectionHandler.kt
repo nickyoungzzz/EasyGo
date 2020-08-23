@@ -1,6 +1,6 @@
 package com.nick.easyhttp.core.req.urlconnection
 
-import com.nick.easyhttp.config.EasyHttp
+import com.nick.easyhttp.config.EasyGo
 import com.nick.easyhttp.core.req.HttpHandler
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpResp
@@ -15,13 +15,13 @@ class UrlConnectionHandler : HttpHandler {
 			.headerMap(httpReq.headerMap).queryMap(httpReq.queryMap)
 			.multipartBody(httpReq.httpReqBody.multipartBody).build()
 
-		val urlConnectionResp = EasyHttp.urlConnectionClient.proceed(urlConnectionReq)
+		val urlConnectionResp = EasyGo.urlConnectionClient.proceed(urlConnectionReq)
 		return HttpResp(urlConnectionResp.resp, urlConnectionResp.code, urlConnectionResp.isSuccessful,
 			urlConnectionResp.headers, urlConnectionResp.exception, urlConnectionResp.contentLength, urlConnectionResp.inputStream, urlConnectionResp.url)
 	}
 
 	override fun cancel() {
-		EasyHttp.urlConnectionClient.cancel()
+		EasyGo.urlConnectionClient.cancel()
 	}
 
 	override val requestClient: String

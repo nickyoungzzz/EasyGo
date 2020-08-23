@@ -1,6 +1,6 @@
 package com.nick.easyhttp.core
 
-import com.nick.easyhttp.config.EasyHttp
+import com.nick.easyhttp.config.EasyGo
 import com.nick.easyhttp.config.HttpConfig
 import com.nick.easyhttp.core.download.DownParam
 import com.nick.easyhttp.core.download.DownState
@@ -11,10 +11,10 @@ import com.nick.easyhttp.core.interceptor.HttpInterceptorChain
 import com.nick.easyhttp.core.interceptor.LaunchHttpInterceptor
 import com.nick.easyhttp.core.param.HttpParam
 import com.nick.easyhttp.core.req.HttpHandler
+import com.nick.easyhttp.result.HttpOriginalResult
 import com.nick.easyhttp.result.HttpReq
 import com.nick.easyhttp.result.HttpReqBody
 import com.nick.easyhttp.result.HttpResp
-import com.nick.easyhttp.result.HttpResult
 import java.io.IOException
 
 class HttpEmitter internal constructor(private val param: HttpParam) {
@@ -23,7 +23,7 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 
 	private var asDownload = false
 
-	private var httpConfig: HttpConfig = EasyHttp.httpConfig
+	private var httpConfig: HttpConfig = EasyGo.httpConfig
 
 	private var httpHandler: HttpHandler = httpConfig.httpHandler
 
@@ -70,31 +70,30 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 				add(DownloadHttpInterceptor(downParam.breakPoint, range))
 			}
 		}
-		val realInterceptorChain = HttpInterceptorChain(httpInterceptors, 0, originalHttpReq)
-		return realInterceptorChain.proceed(originalHttpReq)
+		return HttpInterceptorChain(httpInterceptors, 0, originalHttpReq).proceed(originalHttpReq)
 	}
 
-	fun deploy(extra: HttpEmitter.() -> Unit) = apply(extra)
+	fun deploy(deploy: HttpEmitter.() -> Unit) = apply(deploy)
 
-	fun launch(init: HttpResult.() -> Unit = {}): HttpResult {
-		val httpResp = generateHttpResp()
-		val status = if (httpResp.exception != null) HttpStatus.EXCEPTION
-		else (if (httpResp.isSuccessful) HttpStatus.SUCCESS else HttpStatus.ERROR)
-		return HttpResult(httpResp.url, httpResp.code, httpResp.headers, httpResp.resp, httpResp.exception, status).apply(init)
+	fun send(init: HttpOriginalResult.() -> Unit = {}): HttpOriginalResult {
+		return HttpOriginalResult(generateHttpResp()).apply(init)
 	}
 
 	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) {
-		val httpResp = generateHttpResp()
-		if (httpResp.isSuccessful) {
-			try {
-				downloadHandler.saveFile(httpResp.inputStream!!, downParam, httpResp.contentLength) { state ->
-					download(state)
+		generateHttpResp().let {
+			if (it.isSuccessful) {
+				try {
+					downloadHandler.saveFile(it.inputStream!!, downParam, it.contentLength) { state ->
+						download(state)
+					}
+				} catch (e: IOException) {
+					exc(e)
 				}
-			} catch (e: IOException) {
-				exc(e)
+			} else {
+				it.exception?.run {
+					exc(this)
+				}
 			}
-		} else {
-			exc(httpResp.exception!!)
 		}
 	}
 
