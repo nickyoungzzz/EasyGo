@@ -73,7 +73,7 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 		return HttpInterceptorChain(httpInterceptors, 0, originalHttpReq).proceed(originalHttpReq)
 	}
 
-	fun deploy(deploy: HttpEmitter.() -> Unit) = apply(deploy)
+	fun config(config: HttpEmitter.() -> Unit) = apply(config)
 
 	fun send(init: HttpOriginalResult.() -> Unit = {}): HttpOriginalResult {
 		return HttpOriginalResult(generateHttpResp()).apply(init)
