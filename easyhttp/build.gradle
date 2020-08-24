@@ -9,8 +9,8 @@ dependencies {
     implementation 'com.squareup.okio:okio:2.8.0'
 }
 
-sourceCompatibility = "8"
-targetCompatibility = "8"
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 publish {
     userOrg = 'niekai'
