@@ -5,26 +5,26 @@ package com.nick.easygo.core
 
 import com.nick.easygo.core.param.HttpParam
 
-fun http(reqMethod: ReqMethod, init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(reqMethod).apply(init))
+fun http(reqMethod: ReqMethod, reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(reqMethod, reqUrl).apply(init))
 
-fun httpGet(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.GET).apply(init))
+fun httpGet(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.GET, reqUrl).apply(init))
 
-fun httpGetForm(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.GET_FORM).apply(init))
+fun httpGetForm(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.GET_FORM, reqUrl).apply(init))
 
-fun httpPost(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.POST).apply(init))
+fun httpPost(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.POST, reqUrl).apply(init))
 
-fun httpPostForm(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.POST_FORM).apply(init))
+fun httpPostForm(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.POST_FORM, reqUrl).apply(init))
 
-fun httpPut(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.PUT).apply(init))
+fun httpPut(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.PUT, reqUrl).apply(init))
 
-fun httpPutForm(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.PUT_FORM).apply(init))
+fun httpPutForm(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.PUT_FORM, reqUrl).apply(init))
 
-fun httpDelete(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.DELETE).apply(init))
+fun httpDelete(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.DELETE, reqUrl).apply(init))
 
-fun httpDeleteForm(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.DELETE_FORM).apply(init))
+fun httpDeleteForm(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.DELETE_FORM, reqUrl).apply(init))
 
-fun httpPatch(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.PATCH).apply(init))
+fun httpPatch(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.PATCH, reqUrl).apply(init))
 
-fun httpPatchForm(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.PATCH_FORM).apply(init))
+fun httpPatchForm(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.PATCH_FORM, reqUrl).apply(init))
 
-fun httpHead(init: HttpParam.() -> Unit) = HttpEmitter(HttpParam(ReqMethod.HEAD).apply(init))
+fun httpHead(reqUrl: String = "", init: HttpParam.() -> Unit = {}) = HttpEmitter(HttpParam(ReqMethod.HEAD, reqUrl).apply(init))

@@ -6,10 +6,6 @@ enum class ReqMethod constructor(var method: String, var form: Boolean) {
 	PUT_FORM("PUT", true), DELETE_FORM("DELETE", true), PATCH_FORM("PATCH", true)
 }
 
-enum class HttpStatus {
-	SUCCESS, ERROR, EXCEPTION
-}
-
 enum class HttpCacheStrategy {
 	MEMORY_CACHE, FILE_CACHE
 }

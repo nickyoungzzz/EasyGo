@@ -1,7 +1,5 @@
 package com.nick.easygo.result
 
-import com.nick.easygo.core.HttpStatus
-
 class HttpOriginalResult internal constructor(private val httpResp: HttpResp) {
 
 	fun originalResult(block: (HttpResp) -> Unit): HttpOriginalResult {
@@ -9,38 +7,29 @@ class HttpOriginalResult internal constructor(private val httpResp: HttpResp) {
 		return this
 	}
 
-	fun <T, F> transform(transform: HttpResult<T, F>.() -> Unit): HttpResult<T, F> {
+	fun <T, F> mapResult(mapResult: HttpResult<T, F>.() -> Unit): HttpResult<T, F> {
 		var resp: String? = null
 		var throwable: Throwable? = null
-		val httpStatus = when {
-			httpResp.exception != null -> HttpStatus.EXCEPTION.apply {
-				throwable = httpResp.exception
-			}
-			else -> if (httpResp.isSuccessful) HttpStatus.SUCCESS.apply {
-				resp = httpResp.resp
-			} else HttpStatus.ERROR.apply {
-				throwable = HttpError(httpResp.resp)
-			}
+		when {
+			httpResp.exception != null -> throwable = httpResp.exception
+			else -> if (httpResp.isSuccessful) resp = httpResp.resp else HttpError(httpResp.resp)
 		}
-		return HttpResult<T, F>(httpResp.code, httpResp.headers, httpResp.url, resp, throwable, httpStatus).apply(transform)
+		return HttpResult<T, F>(httpResp.code, httpResp.headers, httpResp.url, resp, throwable).apply(mapResult)
 	}
 }
 
-class HttpResult<T, F> constructor(val code: Int, val headers: Map<String, List<String>>, val url: String, resp: String?, throwable: Throwable?, httpStatus: HttpStatus) {
+class HttpResult<T, F> constructor(val code: Int, val headers: Map<String, List<String>>, val url: String, private val resp: String?, private val throwable: Throwable?) {
 
-	private var mResult: ((String?) -> T?)? = null
-	private var mError: ((Throwable?) -> F?)? = null
-
-	var result: T? = resp?.let { mResult?.invoke(it) }
-	var error: F? = throwable?.let { mError?.invoke(it) }
+	var result: T? = resp?.let { it as? T }
+	var error: F? = throwable?.let { it as? F }
 
 	fun result(r: (String?) -> T?) {
-		mResult = r
+		result = r.invoke(resp)
 	}
 
 	fun error(e: (Throwable?) -> F?) {
-		mError = e
+		error = e.invoke(throwable)
 	}
 }
 
-class HttpError(message: String) : Throwable(message)
+class HttpError(val resp: String) : Throwable(resp)

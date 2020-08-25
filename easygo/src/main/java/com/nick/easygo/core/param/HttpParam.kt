@@ -2,9 +2,9 @@ package com.nick.easygo.core.param
 
 import com.nick.easygo.core.ReqMethod
 
-class HttpParam constructor(internal val reqMethod: ReqMethod) {
+class HttpParam constructor(internal val reqMethod: ReqMethod, internal val reqUrl: String) {
 
-	internal var url: String = ""
+	internal var url: String = reqUrl
 
 	internal val queryMap = hashMapOf<String, String>()
 
