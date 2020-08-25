@@ -14,7 +14,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 
 publish {
     userOrg = 'niekai'
-    groupId = 'com.nick.common'
+    groupId = 'com.nick.code'
     artifactId = 'easygo'
     publishVersion = '1.0.0'
     desc = 'this is a lib created with kotlin/okhttp which can be used to call http request'
