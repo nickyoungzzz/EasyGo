@@ -27,4 +27,5 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(path: ':easygo')
+    implementation 'androidx.appcompat:appcompat:1.2.0'
 }
