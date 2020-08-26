@@ -341,4 +341,6 @@ object EasyGo {
 		@Suppress("UNCHECKED_CAST")
 		return if (isMemoryCache) cacheMap else ObjectInputStream(FileInputStream(cacheFile)).readObject() as LinkedHashMap<URI, HttpCache>
 	}
+
+	fun getHttpConfig() = httpConfig
 }

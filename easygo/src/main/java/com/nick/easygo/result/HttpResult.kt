@@ -2,7 +2,7 @@ package com.nick.easygo.result
 
 class HttpRawResult internal constructor(private val httpResp: HttpResp, val httpResultParser: HttpResultParser) {
 
-	fun originalResult(block: (HttpResp) -> Unit): HttpRawResult {
+	fun rawResult(block: (HttpResp) -> Unit): HttpRawResult {
 		block.invoke(httpResp)
 		return this
 	}
@@ -18,6 +18,7 @@ class HttpRawResult internal constructor(private val httpResp: HttpResp, val htt
 	}
 }
 
+@Suppress("UNCHECKED_CAST")
 class HttpResult<T, F> constructor(val code: Int, val headers: Map<String, List<String>>, val url: String, private val resp: String?, private val throwable: Throwable?) {
 
 	var result: T? = resp?.let { it as? T }
@@ -32,6 +33,6 @@ class HttpResult<T, F> constructor(val code: Int, val headers: Map<String, List<
 	}
 }
 
-class HttpError(val resp: String) : Throwable(resp)
+class HttpError(val error: String) : Throwable(error)
 
 
