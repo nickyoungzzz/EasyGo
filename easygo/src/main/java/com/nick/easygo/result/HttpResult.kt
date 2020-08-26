@@ -1,8 +1,8 @@
 package com.nick.easygo.result
 
-class HttpOriginalResult internal constructor(private val httpResp: HttpResp) {
+class HttpRawResult internal constructor(private val httpResp: HttpResp, val httpResultParser: HttpResultParser) {
 
-	fun originalResult(block: (HttpResp) -> Unit): HttpOriginalResult {
+	fun originalResult(block: (HttpResp) -> Unit): HttpRawResult {
 		block.invoke(httpResp)
 		return this
 	}
@@ -33,3 +33,5 @@ class HttpResult<T, F> constructor(val code: Int, val headers: Map<String, List<
 }
 
 class HttpError(val resp: String) : Throwable(resp)
+
+

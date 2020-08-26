@@ -11,7 +11,7 @@ import com.nick.easygo.core.interceptor.HttpInterceptorChain
 import com.nick.easygo.core.interceptor.LaunchHttpInterceptor
 import com.nick.easygo.core.param.HttpParam
 import com.nick.easygo.core.req.HttpHandler
-import com.nick.easygo.result.HttpOriginalResult
+import com.nick.easygo.result.HttpRawResult
 import com.nick.easygo.result.HttpReq
 import com.nick.easygo.result.HttpReqBody
 import com.nick.easygo.result.HttpResp
@@ -75,8 +75,8 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 
 	fun config(config: HttpEmitter.() -> Unit) = apply(config)
 
-	fun send(init: HttpOriginalResult.() -> Unit = {}): HttpOriginalResult {
-		return HttpOriginalResult(generateHttpResp()).apply(init)
+	fun send(init: HttpRawResult.() -> Unit = {}): HttpRawResult {
+		return HttpRawResult(generateHttpResp(), httpConfig.httpResultParser).apply(init)
 	}
 
 	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) {
