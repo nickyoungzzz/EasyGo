@@ -61,7 +61,7 @@ class HttpConfig internal constructor(builder: Builder) {
 			private set
 		internal var httpCacheHandler = HttpCacheHandler.MEMORY_CACHE
 			private set
-		internal var timeoutHandler = fun(_: String, _: Any?, _: String, _: Map<String, List<String>>): TimeoutConfig = TimeoutConfig()
+		internal var timeoutHandler = fun(_: String, _: Any?, _: String, _: Map<String, List<String>>): TimeoutConfig? = null
 			private set
 		internal val httpInterceptors = ArrayList<HttpInterceptor>()
 		internal var httpResultParser: HttpResultParser = GSONResultParser()

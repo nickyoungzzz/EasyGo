@@ -60,6 +60,7 @@ object EasyGo {
 		okHttpClient = OkHttpClient.Builder().proxy(httpConfig.proxy)
 			.readTimeout(httpConfig.readTimeOut, TimeUnit.MILLISECONDS)
 			.connectTimeout(httpConfig.connectTimeout, TimeUnit.MILLISECONDS)
+			.writeTimeout(httpConfig.writeTimeOut, TimeUnit.MILLISECONDS)
 			.hostnameVerifier(httpConfig.hostnameVerifier)
 			.sslSocketFactory(httpConfig.sslSocketFactory, httpConfig.x509TrustManager)
 			.dns(object : Dns {
@@ -109,7 +110,8 @@ object EasyGo {
 					val request = chain.request()
 					val timeoutConfig = httpConfig.timeoutHandler(request.url.toUri().toString(), request.tag(),
 						request.method, request.headers.toMultimap())
-					return chain.withConnectTimeout(timeoutConfig.connectTimeout.toInt(), TimeUnit.MILLISECONDS)
+					return if (timeoutConfig == null) chain.proceed(request)
+					else chain.withConnectTimeout(timeoutConfig.connectTimeout.toInt(), TimeUnit.MILLISECONDS)
 						.withReadTimeout(timeoutConfig.readTimeOut.toInt(), TimeUnit.MILLISECONDS)
 						.withWriteTimeout(timeoutConfig.writeTimeOut.toInt(), TimeUnit.MILLISECONDS)
 						.proceed(request)
@@ -120,6 +122,7 @@ object EasyGo {
 		urlConnectionClient = UrlConnectionClient.Builder().proxy(httpConfig.proxy)
 			.readTimeOut(httpConfig.readTimeOut)
 			.connectTimeOut(httpConfig.connectTimeout)
+			.writeTimeOut(httpConfig.writeTimeOut)
 			.hostNameVerifier(httpConfig.hostnameVerifier)
 			.sslSocketFactory(httpConfig.sslSocketFactory)
 			.x509TrustManager(httpConfig.x509TrustManager)
@@ -139,7 +142,8 @@ object EasyGo {
 					}
 					val timeoutConfig = httpConfig.timeoutHandler(urlConnectionReq.url, urlConnectionReq.reqTag,
 						urlConnectionReq.reqMethod.method, headerMap)
-					return@setInterceptor this.proceedInternal(urlConnectionReq.newBuilder()
+					return@setInterceptor if (timeoutConfig == null) this.proceedInternal(urlConnectionReq)
+					else this.proceedInternal(urlConnectionReq.newBuilder()
 						.connectTimeOut(timeoutConfig.connectTimeout).readTimeOut(timeoutConfig.readTimeOut)
 						.writeTimeOut(timeoutConfig.writeTimeOut).build())
 				}

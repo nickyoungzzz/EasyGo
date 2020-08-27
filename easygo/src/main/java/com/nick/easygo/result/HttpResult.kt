@@ -12,7 +12,7 @@ class HttpRawResult internal constructor(private val httpResp: HttpResp, val htt
 		var throwable: Throwable? = null
 		when {
 			httpResp.exception != null -> throwable = httpResp.exception
-			else -> if (httpResp.isSuccessful) resp = httpResp.resp else HttpError(httpResp.resp)
+			else -> if (httpResp.isSuccessful) resp = httpResp.resp else throwable = HttpError(httpResp.resp)
 		}
 		return HttpResult<T, F>(httpResp.code, httpResp.headers, httpResp.url, resp, throwable).apply(mapResult)
 	}
