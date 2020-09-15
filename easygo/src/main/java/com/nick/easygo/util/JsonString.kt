@@ -1,10 +1,9 @@
-package com.nick.easygo.result
+package com.nick.easygo.util
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.nick.easygo.config.EasyGo
 
-inline fun <reified T> String?.httpResult2Any(): T? {
+inline fun <reified T> String?.toAny(httpResultParser: HttpResultParser = GSONResultParser()): T? {
 	return when (val clazz = T::class.java) {
 		String::class.java -> this as? T
 		Int::class.java -> this?.toInt() as? T
@@ -15,12 +14,12 @@ inline fun <reified T> String?.httpResult2Any(): T? {
 		Byte::class.java -> this?.toByte() as? T
 		CharArray::class.java -> this?.toCharArray() as? T
 		Boolean::class.java -> this?.toBoolean() as? T
-		else -> EasyGo.getHttpConfig().httpResultParser.toAnyObject(this, clazz)
+		else -> httpResultParser.toAnyObject(this, clazz)
 	}
 }
 
-inline fun <reified T> String?.httpResult2AnyList(): List<T> {
-	return EasyGo.getHttpConfig().httpResultParser.toAnyList(this, T::class.java)
+inline fun <reified T> String?.toAnyList(httpResultParser: HttpResultParser = GSONResultParser()): List<T> {
+	return httpResultParser.toAnyList(this, T::class.java)
 }
 
 interface HttpResultParser {

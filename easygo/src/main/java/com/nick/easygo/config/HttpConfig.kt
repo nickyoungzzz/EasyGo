@@ -5,8 +5,6 @@ import com.nick.easygo.core.cookie.HttpCookieHandler
 import com.nick.easygo.core.download.DownloadHandler
 import com.nick.easygo.core.interceptor.HttpInterceptor
 import com.nick.easygo.core.req.HttpHandler
-import com.nick.easygo.result.GSONResultParser
-import com.nick.easygo.result.HttpResultParser
 import com.nick.easygo.util.SslHelper
 import java.net.InetAddress
 import java.net.Proxy
@@ -30,7 +28,6 @@ class HttpConfig internal constructor(builder: Builder) {
 	val httpCacheHandler = builder.httpCacheHandler
 	val timeoutHandler = builder.timeoutHandler
 	val httpInterceptors = builder.httpInterceptors
-	val httpResultParser = builder.httpResultParser
 
 	constructor() : this(Builder())
 
@@ -47,7 +44,7 @@ class HttpConfig internal constructor(builder: Builder) {
 			private set
 		internal var x509TrustManager: X509TrustManager = SslHelper.getTrustManager()
 			private set
-		internal var downloadHandler: DownloadHandler = DownloadHandler.OKIO_DOWNLOAD_HANDLER
+		internal var downloadHandler: DownloadHandler = DownloadHandler.OK_IO_DOWNLOAD_HANDLER
 			private set
 		internal var connectTimeOut: Long = 15000L
 			private set
@@ -64,8 +61,6 @@ class HttpConfig internal constructor(builder: Builder) {
 		internal var timeoutHandler = fun(_: String, _: Any?, _: String, _: Map<String, List<String>>): TimeoutConfig? = null
 			private set
 		internal val httpInterceptors = ArrayList<HttpInterceptor>()
-		internal var httpResultParser: HttpResultParser = GSONResultParser()
-			private set
 
 		constructor(httpConfig: HttpConfig) : this() {
 			this.proxy = httpConfig.proxy
@@ -81,7 +76,6 @@ class HttpConfig internal constructor(builder: Builder) {
 			this.httpCookieHandler = httpConfig.httpCookieHandler
 			this.httpCacheHandler = httpConfig.httpCacheHandler
 			this.httpInterceptors.addAll(httpConfig.httpInterceptors)
-			this.httpResultParser = httpConfig.httpResultParser
 		}
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
@@ -113,8 +107,6 @@ class HttpConfig internal constructor(builder: Builder) {
 		fun timeoutHandler(timeoutHandler: (url: String, tag: Any?, method: String, headers: Map<String, List<String>>) -> TimeoutConfig) = apply {
 			this.timeoutHandler = timeoutHandler
 		}
-
-		fun setHttpResultParser(httpResultParser: HttpResultParser) = apply { this.httpResultParser = httpResultParser }
 
 		fun build() = HttpConfig(this)
 	}

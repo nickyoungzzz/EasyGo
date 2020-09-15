@@ -2,7 +2,7 @@ package com.nick.easygo.core.param
 
 import com.nick.easygo.core.ReqMethod
 
-class HttpParam constructor(internal val reqMethod: ReqMethod, internal val reqUrl: String) {
+class HttpParam constructor(internal val reqMethod: ReqMethod, reqUrl: String) {
 
 	internal var url: String = reqUrl
 
@@ -33,7 +33,7 @@ class HttpParam constructor(internal val reqMethod: ReqMethod, internal val reqU
 	fun body(init: Body.() -> Unit) {
 		Body().apply(init).addTo { body ->
 			when (body) {
-				is Form -> body.addTo { k, v -> fieldMap[k] = v }
+				is Field -> body.addTo { k, v -> fieldMap[k] = v }
 				is Json -> jsonString = body.json
 				is Part -> body.addTo { k, v -> multipartBody[k] = v }
 				is Multi -> isMultiPart = body.multi

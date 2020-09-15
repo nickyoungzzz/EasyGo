@@ -15,7 +15,7 @@ class Header : Params()
 
 class Query : Params()
 
-class Form : Params()
+class Field : Params()
 
 class Json constructor(var json: String = "") : ReqBody
 
@@ -33,8 +33,8 @@ class Multi constructor(var multi: Boolean = false) : ReqBody
 class Body {
 	private val dataMapList = ArrayList<ReqBody>()
 
-	fun form(init: Form.() -> Unit) {
-		dataMapList.add(Form().apply(init))
+	fun field(init: Field.() -> Unit) {
+		dataMapList.add(Field().apply(init))
 	}
 
 	fun json(json: String) {

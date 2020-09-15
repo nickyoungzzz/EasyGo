@@ -105,17 +105,15 @@ object EasyGo {
 						}
 					}
 				}
-			}).addInterceptor(object : Interceptor {
-				override fun intercept(chain: Interceptor.Chain): Response {
-					val request = chain.request()
-					val timeoutConfig = httpConfig.timeoutHandler(request.url.toUri().toString(), request.tag(),
-						request.method, request.headers.toMultimap())
-					return if (timeoutConfig == null) chain.proceed(request)
-					else chain.withConnectTimeout(timeoutConfig.connectTimeout.toInt(), TimeUnit.MILLISECONDS)
-						.withReadTimeout(timeoutConfig.readTimeOut.toInt(), TimeUnit.MILLISECONDS)
-						.withWriteTimeout(timeoutConfig.writeTimeOut.toInt(), TimeUnit.MILLISECONDS)
-						.proceed(request)
-				}
+			}).addInterceptor(Interceptor { chain ->
+				val request = chain.request()
+				val timeoutConfig = httpConfig.timeoutHandler(request.url.toUri().toString(), request.tag(),
+					request.method, request.headers.toMultimap())
+				if (timeoutConfig == null) chain.proceed(request)
+				else chain.withConnectTimeout(timeoutConfig.connectTimeout.toInt(), TimeUnit.MILLISECONDS)
+					.withReadTimeout(timeoutConfig.readTimeOut.toInt(), TimeUnit.MILLISECONDS)
+					.withWriteTimeout(timeoutConfig.writeTimeOut.toInt(), TimeUnit.MILLISECONDS)
+					.proceed(request)
 			})
 			.build()
 

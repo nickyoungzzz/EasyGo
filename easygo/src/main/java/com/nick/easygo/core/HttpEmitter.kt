@@ -76,7 +76,7 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 	fun config(config: HttpEmitter.() -> Unit) = apply(config)
 
 	fun send(init: HttpRawResult.() -> Unit = {}): HttpRawResult {
-		return HttpRawResult(generateHttpResp(), httpConfig.httpResultParser).apply(init)
+		return HttpRawResult(generateHttpResp()).apply(init)
 	}
 
 	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) {

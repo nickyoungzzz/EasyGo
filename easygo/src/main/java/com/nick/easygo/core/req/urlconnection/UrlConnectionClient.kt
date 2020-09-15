@@ -121,7 +121,12 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 		}
 		val url = URL("${urlConnectionReq.url}${stringBuilder.toString().substringBeforeLast("&")}")
 		stringBuilder.clear()
-		connection = url.openConnection(this.proxy) as HttpsURLConnection
+		val urlConnectionRespBuilder = UrlConnectionResp.Builder()
+		try {
+			connection = url.openConnection(this.proxy) as HttpsURLConnection
+		} catch (e: IOException) {
+			return urlConnectionRespBuilder.exception(e).build()
+		}
 		connection.requestMethod = urlConnectionReq.reqMethod.method
 		connection.connectTimeout = urlConnectionReq.connectTimeout.toInt()
 		connection.readTimeout = urlConnectionReq.readTimeOut.toInt()
@@ -176,7 +181,6 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 				throw RuntimeException("put, delete, patch method do not have multipart body or form body")
 			}
 		}
-		val urlConnectionRespBuilder = UrlConnectionResp.Builder()
 		try {
 			makeDns(url.host, this.dns(url.host))
 			connection.connect()

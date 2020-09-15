@@ -12,6 +12,6 @@ interface DownloadHandler {
 
 	companion object {
 		@JvmField
-		val OKIO_DOWNLOAD_HANDLER = OkIoDownHandler()
+		val OK_IO_DOWNLOAD_HANDLER = OkIoDownHandler()
 	}
 }
