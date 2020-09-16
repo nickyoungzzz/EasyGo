@@ -96,7 +96,7 @@ class HttpConfig internal constructor(builder: Builder) {
 
 		fun writeTimeOut(writeTimeOut: Long) = apply { this.writeTimeOut = writeTimeOut }
 
-		fun interceptor(httpInterceptor: HttpInterceptor) = apply { this.httpInterceptors.add(httpInterceptor) }
+		fun addInterceptor(httpInterceptor: HttpInterceptor) = apply { this.httpInterceptors.add(httpInterceptor) }
 
 		fun dns(dns: (host: String) -> Array<InetAddress>) = apply { this.dns = dns }
 

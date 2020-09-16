@@ -46,7 +46,7 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 		this.httpHandler = httpHandler
 	}
 
-	fun interceptor(httpInterceptor: HttpInterceptor) {
+	fun addInterceptor(httpInterceptor: HttpInterceptor) {
 		httpInterceptors.add(httpInterceptor)
 	}
 
@@ -64,11 +64,11 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 		val originalHttpReq = generateHttpReq()
 		httpInterceptors.apply {
 			addAll(0, httpConfig.httpInterceptors)
-			add(LaunchHttpInterceptor(httpHandler))
 			if (asDownload) {
 				val range = downParam.desSource.let { if (it.exists()) it.length() else 0 }
 				add(DownloadHttpInterceptor(downParam.breakPoint, range))
 			}
+			add(LaunchHttpInterceptor(httpHandler))
 		}
 		return HttpInterceptorChain(httpInterceptors, 0, originalHttpReq).proceed(originalHttpReq)
 	}
