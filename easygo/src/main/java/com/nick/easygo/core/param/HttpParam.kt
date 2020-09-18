@@ -1,7 +1,9 @@
 package com.nick.easygo.core.param
 
 import com.nick.easygo.core.ReqMethod
+import com.nick.easygo.core.annotation.HttpDslMaker
 
+@HttpDslMaker
 class HttpParam constructor(internal val reqMethod: ReqMethod, reqUrl: String) {
 
 	internal var url: String = reqUrl

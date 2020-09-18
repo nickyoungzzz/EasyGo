@@ -1,6 +1,9 @@
 package com.nick.easygo.core.param
 
-interface ReqBody
+import com.nick.easygo.core.annotation.HttpDslMaker
+
+@HttpDslMaker
+internal interface ReqBody
 
 open class Params : ReqBody {
 	private val dataMap = hashMapOf<String, String>()
@@ -30,7 +33,7 @@ class Part : ReqBody {
 
 class Multi constructor(var multi: Boolean = false) : ReqBody
 
-class Body {
+class Body : ReqBody {
 	private val dataMapList = ArrayList<ReqBody>()
 
 	fun field(init: Field.() -> Unit) {
