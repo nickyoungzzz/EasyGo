@@ -2,9 +2,10 @@ package com.nick.easygo.result
 
 import java.io.InputStream
 
-class HttpResp internal constructor(val resp: String, val code: Int, val isSuccessful: Boolean,
-                                    val headers: Map<String, List<String>>, val exception: Throwable?,
-                                    val contentLength: Long, val inputStream: InputStream?, val url: String
+class HttpResp internal constructor(
+	val resp: String, val code: Int, val isSuccessful: Boolean,
+	val headers: Map<String, List<String>>, val exception: Throwable?,
+	val contentLength: Long, val inputStream: InputStream?, val url: String
 ) {
 	fun newBuilder() = Builder(this)
 

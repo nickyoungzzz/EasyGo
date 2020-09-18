@@ -28,11 +28,13 @@ internal class UrlConnectionClient constructor(builder: Builder) {
 	var writeTimeOut = builder.writeTimeOut
 	var dns = builder.dns
 	var interceptor = fun(urlConnectionReq: UrlConnectionReq): UrlConnectionResp {
-		return proceedInternal(urlConnectionReq.newBuilder()
-			.readTimeOut(this.readTimeOut)
-			.writeTimeOut(this.readTimeOut)
-			.connectTimeOut(this.connectTimeout)
-			.build())
+		return proceedInternal(
+			urlConnectionReq.newBuilder()
+				.readTimeOut(this.readTimeOut)
+				.writeTimeOut(this.readTimeOut)
+				.connectTimeOut(this.connectTimeout)
+				.build()
+		)
 	}
 
 	constructor() : this(Builder())

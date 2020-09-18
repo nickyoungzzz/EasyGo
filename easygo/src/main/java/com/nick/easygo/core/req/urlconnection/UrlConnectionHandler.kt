@@ -16,8 +16,10 @@ class UrlConnectionHandler : HttpHandler {
 			.multipartBody(httpReq.httpReqBody.multipartBody).build()
 
 		val urlConnectionResp = EasyGo.urlConnectionClient.proceed(urlConnectionReq)
-		return HttpResp(urlConnectionResp.resp, urlConnectionResp.code, urlConnectionResp.isSuccessful,
-			urlConnectionResp.headers, urlConnectionResp.exception, urlConnectionResp.contentLength, urlConnectionResp.inputStream, urlConnectionResp.url)
+		return HttpResp(
+			urlConnectionResp.resp, urlConnectionResp.code, urlConnectionResp.isSuccessful,
+			urlConnectionResp.headers, urlConnectionResp.exception, urlConnectionResp.contentLength, urlConnectionResp.inputStream, urlConnectionResp.url
+		)
 	}
 
 	override fun cancel() {

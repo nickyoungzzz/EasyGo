@@ -23,8 +23,10 @@ class OkHttpHandler : HttpHandler {
 			val response = call.execute()
 			val responseBody = response.body as ResponseBody
 			val resp = if (!httpReq.asDownload) responseBody.string() else ""
-			HttpResp(resp, response.code, response.isSuccessful, response.headers.toMultimap(), null,
-				responseBody.contentLength(), responseBody.byteStream(), response.request.url.toString())
+			HttpResp(
+				resp, response.code, response.isSuccessful, response.headers.toMultimap(), null,
+				responseBody.contentLength(), responseBody.byteStream(), response.request.url.toString()
+			)
 		} catch (e: IOException) {
 			HttpResp("", 0, false, emptyMap(), e, 0, null, httpReq.url)
 		}

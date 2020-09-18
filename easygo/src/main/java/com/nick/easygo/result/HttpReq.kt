@@ -2,9 +2,10 @@ package com.nick.easygo.result
 
 import com.nick.easygo.core.ReqMethod
 
-class HttpReq internal constructor(val url: String, val reqMethod: ReqMethod, val reqTag: Any?,
-                                   val headerMap: Map<String, String>, val queryMap: Map<String, String>,
-                                   val httpReqBody: HttpReqBody, var asDownload: Boolean
+class HttpReq internal constructor(
+	val url: String, val reqMethod: ReqMethod, val reqTag: Any?,
+	val headerMap: Map<String, String>, val queryMap: Map<String, String>,
+	val httpReqBody: HttpReqBody, var asDownload: Boolean
 ) {
 	fun newBuilder() = Builder(this)
 
@@ -72,8 +73,9 @@ class HttpReq internal constructor(val url: String, val reqMethod: ReqMethod, va
 	}
 }
 
-class HttpReqBody internal constructor(val fieldMap: Map<String, String>, val multipartBody: Map<String, Any>,
-                                       val isMultiPart: Boolean, val jsonString: String
+class HttpReqBody internal constructor(
+	val fieldMap: Map<String, String>, val multipartBody: Map<String, Any>,
+	val isMultiPart: Boolean, val jsonString: String
 ) {
 	fun newBuilder() = Builder(this)
 

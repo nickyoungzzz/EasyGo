@@ -107,8 +107,10 @@ object EasyGo {
 				}
 			}).addInterceptor(Interceptor { chain ->
 				val request = chain.request()
-				val timeoutConfig = httpConfig.timeoutHandler(request.url.toUri().toString(), request.tag(),
-					request.method, request.headers.toMultimap())
+				val timeoutConfig = httpConfig.timeoutHandler(
+					request.url.toUri().toString(), request.tag(),
+					request.method, request.headers.toMultimap()
+				)
 				if (timeoutConfig == null) chain.proceed(request)
 				else chain.withConnectTimeout(timeoutConfig.connectTimeout.toInt(), TimeUnit.MILLISECONDS)
 					.withReadTimeout(timeoutConfig.readTimeOut.toInt(), TimeUnit.MILLISECONDS)
@@ -138,12 +140,16 @@ object EasyGo {
 							headerMap[key] = list
 						}
 					}
-					val timeoutConfig = httpConfig.timeoutHandler(urlConnectionReq.url, urlConnectionReq.reqTag,
-						urlConnectionReq.reqMethod.method, headerMap)
+					val timeoutConfig = httpConfig.timeoutHandler(
+						urlConnectionReq.url, urlConnectionReq.reqTag,
+						urlConnectionReq.reqMethod.method, headerMap
+					)
 					return@setInterceptor if (timeoutConfig == null) this.proceedInternal(urlConnectionReq)
-					else this.proceedInternal(urlConnectionReq.newBuilder()
-						.connectTimeOut(timeoutConfig.connectTimeout).readTimeOut(timeoutConfig.readTimeOut)
-						.writeTimeOut(timeoutConfig.writeTimeOut).build())
+					else this.proceedInternal(
+						urlConnectionReq.newBuilder()
+							.connectTimeOut(timeoutConfig.connectTimeout).readTimeOut(timeoutConfig.readTimeOut)
+							.writeTimeOut(timeoutConfig.writeTimeOut).build()
+					)
 				}
 			}
 
