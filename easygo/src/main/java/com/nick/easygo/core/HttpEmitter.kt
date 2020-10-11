@@ -58,8 +58,7 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 		return HttpReq(
 			param.url, param.reqMethod, this@HttpEmitter.reqTag, param.headerMap, param.queryMap,
 			HttpReqBody(param.fieldMap, param.multipartBody, param.isMultiPart, param.jsonString), this@HttpEmitter.asDownload
-		)
-			.newBuilder().addHeader("request-client", httpHandler.requestClient).build()
+		).newBuilder().addHeader("request-client", httpHandler.requestClient).build()
 	}
 
 	private fun generateHttpResp(): HttpResp {
