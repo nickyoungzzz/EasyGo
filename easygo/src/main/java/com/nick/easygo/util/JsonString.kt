@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 inline fun <reified T> String?.toAny(block: (String?, Class<T>) -> T = GSONParser()::toAny): T {
-	return when (val clazz = T::class.java) {
+	return when (T::class.java) {
 		String::class.java -> this as T
 		Int::class.java -> this?.toInt() as T
 		Long::class.java -> this?.toLong() as T
