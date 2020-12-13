@@ -96,7 +96,7 @@ object EasyGo {
 							.whenCreated(System.currentTimeMillis())
 							.build()
 					}.filter { httpHandlerCookie -> cookieHandler.shouldSaveCookie(uri, httpHandlerCookie) }
-					synchronized(EasyGo::class) {
+					synchronized(url.toString()) {
 						cookieMap[uri] = httpHandlerCookies.apply {
 							val eachUriCookieCount = cookieHandler.eachUriCookieCount(uri)
 							if (this.size >= eachUriCookieCount) {
@@ -163,7 +163,7 @@ object EasyGo {
 			override fun add(uri: URI, cookie: java.net.HttpCookie) {
 				val httpHandlerCookie = httpCookie2HttpHandlerCookie(cookie)
 				val eachUriCookieCount = httpConfig.httpCookieHandler.eachUriCookieCount(uri)
-				synchronized(EasyGo::class) {
+				synchronized(uri.toString()) {
 					if (cookieMap.containsKey(uri)) {
 						val httpCookieList = cookieMap[uri]?.toMutableList() ?: arrayListOf()
 						httpCookieList.add(httpHandlerCookie)
