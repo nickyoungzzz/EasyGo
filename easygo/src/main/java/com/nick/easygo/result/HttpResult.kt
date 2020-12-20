@@ -1,37 +1,29 @@
 package com.nick.easygo.result
 
-class HttpRawResult internal constructor(private val httpResp: HttpResp) {
+import com.nick.easygo.parse.ResDataConverter
+import java.lang.reflect.ParameterizedType
+
+class HttpRawResult internal constructor(val httpResp: HttpResp, val resDataConverter: ResDataConverter) {
 
 	fun rawResult(block: (HttpResp) -> Unit): HttpRawResult {
 		block.invoke(httpResp)
 		return this
 	}
-
-	fun <T, F> mapResult(mapResult: HttpResult<T, F>.() -> Unit): HttpResult<T, F> {
-		var resp: String? = null
-		var throwable: Throwable? = null
-		when {
-			httpResp.exception != null -> throwable = httpResp.exception
-			else -> if (httpResp.isSuccessful) resp = httpResp.resp else throwable = HttpError(httpResp.resp)
-		}
-		return HttpResult<T, F>(httpResp.code, httpResp.headers, httpResp.url, resp, throwable).apply(mapResult)
-	}
 }
 
-@Suppress("UNCHECKED_CAST")
-class HttpResult<T, F> constructor(val code: Int, val headers: Map<String, List<String>>, val url: String, private val resp: String?, private val throwable: Throwable?) {
-
-	var result: T? = resp?.let { it as? T }
-	var error: F? = throwable?.let { it as? F }
-
-	fun result(r: (String?) -> T?) {
-		result = r.invoke(resp)
+inline fun <reified T> HttpRawResult.asHttpResult(resAction: (String?) -> String? = { it }): HttpResult<T> {
+	var resp: String? = null
+	var throwable: Throwable? = null
+	when {
+		httpResp.exception != null -> throwable = httpResp.exception
+		httpResp.isSuccessful -> resp = httpResp.resp
+		!httpResp.isSuccessful -> throwable = HttpError(httpResp.resp)
 	}
-
-	fun error(e: (Throwable?) -> F?) {
-		error = e.invoke(throwable)
-	}
+	val type = (T::class.java.genericSuperclass as ParameterizedType).actualTypeArguments[0]
+	return HttpResult(httpResp.code, httpResp.headers, httpResp.url, resDataConverter.convert(resAction.invoke(resp), type), throwable)
 }
+
+data class HttpResult<T> constructor(val code: Int, val headers: Map<String, List<String>>, val url: String, val res: T?, val error: Throwable?)
 
 data class HttpError(val error: String) : Throwable(error)
 

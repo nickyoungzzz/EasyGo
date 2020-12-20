@@ -5,6 +5,8 @@ import com.nick.easygo.core.cookie.HttpCookieHandler
 import com.nick.easygo.core.download.DownloadHandler
 import com.nick.easygo.core.interceptor.HttpInterceptor
 import com.nick.easygo.core.req.HttpHandler
+import com.nick.easygo.parse.GSONDataConverter
+import com.nick.easygo.parse.ResDataConverter
 import com.nick.easygo.util.SslHelper
 import java.net.InetAddress
 import java.net.Proxy
@@ -28,6 +30,7 @@ class HttpConfig internal constructor(builder: Builder) {
 	val httpCacheHandler = builder.httpCacheHandler
 	val timeoutHandler = builder.timeoutHandler
 	val httpInterceptors = builder.httpInterceptors
+	val resDataConverter = builder.resDataConverter
 
 	constructor() : this(Builder())
 
@@ -61,6 +64,8 @@ class HttpConfig internal constructor(builder: Builder) {
 		internal var timeoutHandler = fun(_: String, _: Any?, _: String, _: Map<String, List<String>>): TimeoutConfig? = null
 			private set
 		internal val httpInterceptors = ArrayList<HttpInterceptor>()
+		internal var resDataConverter: ResDataConverter = GSONDataConverter()
+			private set
 
 		constructor(httpConfig: HttpConfig) : this() {
 			this.proxy = httpConfig.proxy
@@ -76,6 +81,7 @@ class HttpConfig internal constructor(builder: Builder) {
 			this.httpCookieHandler = httpConfig.httpCookieHandler
 			this.httpCacheHandler = httpConfig.httpCacheHandler
 			this.httpInterceptors.addAll(httpConfig.httpInterceptors)
+			this.resDataConverter = httpConfig.resDataConverter
 		}
 
 		fun proxy(proxy: Proxy) = apply { this.proxy = proxy }
@@ -106,6 +112,10 @@ class HttpConfig internal constructor(builder: Builder) {
 
 		fun timeoutHandler(timeoutHandler: (url: String, tag: Any?, method: String, headers: Map<String, List<String>>) -> TimeoutConfig) = apply {
 			this.timeoutHandler = timeoutHandler
+		}
+
+		fun resDataConverter(resDataConverter: ResDataConverter) = apply {
+			this.resDataConverter = resDataConverter
 		}
 
 		fun build() = HttpConfig(this)
