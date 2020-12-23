@@ -1,11 +1,11 @@
 package com.nick.easygo.result
 
 import com.nick.easygo.converter.ResDataConverter
-import com.nick.easygo.util.reflect.TypeTaken
+import java.lang.reflect.Type
 
-class HttpRespResult internal constructor(val httpResp: HttpResp, val resDataConverter: ResDataConverter) {
+class HttpRespResult constructor(private val httpResp: HttpResp, private val resDataConverter: ResDataConverter, private val respType: Type, private val respAction: (String?) -> String?) {
 
-	inline fun <reified T> asHttpResult(resAction: (String?) -> String? = { it }): HttpResult<T> {
+	fun <T> asHttpResult(): HttpResult<T> {
 		var resp: String? = null
 		var throwable: Throwable? = null
 		when {
@@ -13,8 +13,7 @@ class HttpRespResult internal constructor(val httpResp: HttpResp, val resDataCon
 			httpResp.isSuccessful -> resp = httpResp.resp
 			!httpResp.isSuccessful -> throwable = HttpError(httpResp.resp)
 		}
-		val type = object : TypeTaken<T>() {}.type
-		return HttpResult(httpResp.code, httpResp.headers, httpResp.url, resDataConverter.convert(resAction.invoke(resp), type), throwable)
+		return HttpResult(httpResp.code, httpResp.headers, httpResp.url, resDataConverter.convert(respAction.invoke(resp), respType), throwable)
 	}
 }
 

@@ -11,10 +11,8 @@ import com.nick.easygo.core.interceptor.HttpInterceptorChain
 import com.nick.easygo.core.interceptor.LaunchHttpInterceptor
 import com.nick.easygo.core.param.HttpParam
 import com.nick.easygo.core.req.HttpHandler
-import com.nick.easygo.result.HttpReq
-import com.nick.easygo.result.HttpReqBody
-import com.nick.easygo.result.HttpResp
-import com.nick.easygo.result.HttpRespResult
+import com.nick.easygo.result.*
+import com.nick.easygo.util.reflect.TypeTaken
 import java.io.IOException
 
 class HttpEmitter internal constructor(private val param: HttpParam) {
@@ -23,7 +21,7 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 
 	private var asDownload = false
 
-	private var httpConfig: HttpConfig = EasyGo.httpConfig
+	var httpConfig: HttpConfig = EasyGo.httpConfig
 
 	private var httpHandler: HttpHandler = httpConfig.httpHandler
 
@@ -61,7 +59,7 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 		).newBuilder().addHeader("request-client", httpHandler.requestClient).build()
 	}
 
-	private fun generateHttpResp(): HttpResp {
+	fun generateHttpResp(): HttpResp {
 		val originalHttpReq = generateHttpReq()
 		httpInterceptors.apply {
 			addAll(0, httpConfig.httpInterceptors)
@@ -74,8 +72,8 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 		return HttpInterceptorChain(httpInterceptors, 0, originalHttpReq).proceed(originalHttpReq)
 	}
 
-	fun send(): HttpRespResult {
-		return HttpRespResult(generateHttpResp(), httpConfig.resDataConverter)
+	inline fun <reified T> send(noinline respAction: (String?) -> String? = { it }): HttpResult<T> {
+		return HttpRespResult(generateHttpResp(), this.httpConfig.resDataConverter, object : TypeTaken<T>() {}.type, respAction).asHttpResult()
 	}
 
 	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) {
