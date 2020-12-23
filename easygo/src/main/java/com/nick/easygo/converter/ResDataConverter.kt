@@ -1,4 +1,4 @@
-package com.nick.easygo.parse
+package com.nick.easygo.converter
 
 import java.lang.reflect.Type
 

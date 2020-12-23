@@ -10,7 +10,7 @@ interface JsonStringParser {
 class GSONParser(private val gao: Gson = Gson()) : JsonStringParser {
 
 	override fun <T> parse(result: String?, type: Type): T {
-		return gao.fromJson(result, type)
+		return toAny(result, type)
 	}
 
 	@Suppress("UNCHECKED_CAST")

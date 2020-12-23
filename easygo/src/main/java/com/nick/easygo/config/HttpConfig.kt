@@ -5,8 +5,8 @@ import com.nick.easygo.core.cookie.HttpCookieHandler
 import com.nick.easygo.core.download.DownloadHandler
 import com.nick.easygo.core.interceptor.HttpInterceptor
 import com.nick.easygo.core.req.HttpHandler
-import com.nick.easygo.parse.GSONDataConverter
-import com.nick.easygo.parse.ResDataConverter
+import com.nick.easygo.converter.GSONDataConverter
+import com.nick.easygo.converter.ResDataConverter
 import com.nick.easygo.util.SslHelper
 import java.net.InetAddress
 import java.net.Proxy

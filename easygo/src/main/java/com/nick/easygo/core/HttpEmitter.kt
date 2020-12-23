@@ -11,10 +11,10 @@ import com.nick.easygo.core.interceptor.HttpInterceptorChain
 import com.nick.easygo.core.interceptor.LaunchHttpInterceptor
 import com.nick.easygo.core.param.HttpParam
 import com.nick.easygo.core.req.HttpHandler
-import com.nick.easygo.result.HttpRawResult
 import com.nick.easygo.result.HttpReq
 import com.nick.easygo.result.HttpReqBody
 import com.nick.easygo.result.HttpResp
+import com.nick.easygo.result.HttpRespResult
 import java.io.IOException
 
 class HttpEmitter internal constructor(private val param: HttpParam) {
@@ -33,24 +33,24 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 
 	private val httpInterceptors = ArrayList<HttpInterceptor>()
 
-	fun tag(reqTag: Any?) {
+	fun tag(reqTag: Any?) = apply {
 		this.reqTag = reqTag
 	}
 
-	fun asDownload(down: DownParam.() -> Unit) {
+	fun asDownload(down: DownParam.() -> Unit) = apply {
 		this.asDownload = true
 		this.downParam = DownParam().apply(down)
 	}
 
-	fun httpHandler(httpHandler: HttpHandler) {
+	fun httpHandler(httpHandler: HttpHandler) = apply {
 		this.httpHandler = httpHandler
 	}
 
-	fun addInterceptor(httpInterceptor: HttpInterceptor) {
+	fun addInterceptor(httpInterceptor: HttpInterceptor) = apply {
 		httpInterceptors.add(httpInterceptor)
 	}
 
-	fun downloadHandler(downloadHandler: DownloadHandler) {
+	fun downloadHandler(downloadHandler: DownloadHandler) = apply {
 		this.downloadHandler = downloadHandler
 	}
 
@@ -74,10 +74,8 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 		return HttpInterceptorChain(httpInterceptors, 0, originalHttpReq).proceed(originalHttpReq)
 	}
 
-	fun config(config: HttpEmitter.() -> Unit) = apply(config)
-
-	fun send(init: HttpRawResult.() -> Unit = {}): HttpRawResult {
-		return HttpRawResult(generateHttpResp(), httpConfig.resDataConverter).apply(init)
+	fun send(): HttpRespResult {
+		return HttpRespResult(generateHttpResp(), httpConfig.resDataConverter)
 	}
 
 	fun download(exc: (e: Throwable) -> Unit = {}, download: (downState: DownState) -> Unit = {}) {
