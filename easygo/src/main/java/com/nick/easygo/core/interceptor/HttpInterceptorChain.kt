@@ -3,7 +3,7 @@ package com.nick.easygo.core.interceptor
 import com.nick.easygo.result.HttpReq
 import com.nick.easygo.result.HttpResp
 
-internal class HttpInterceptorChain(private val httpInterceptors: List<HttpInterceptor>, private var index: Int = 0, private val httpReq: HttpReq) : HttpInterceptor.Chain {
+class HttpInterceptorChain(private val httpInterceptors: List<HttpInterceptor>, private var index: Int = 0, private val httpReq: HttpReq) : HttpInterceptor.Chain {
 
 	override fun proceed(httpReq: HttpReq): HttpResp {
 		if (index >= httpInterceptors.size) {

@@ -1,9 +1,7 @@
-package com.nick.easygo.core
+package com.nick.easygo.core.res
 
 import com.nick.easygo.core.download.DownState
-import com.nick.easygo.result.HttpResult
 
-interface HttpSender<T> {
-	fun send(): HttpResult<T>
+interface HttpStreamer : HttpExecutor {
 	fun download(exc: ((e: Throwable) -> Unit)?, download: ((downState: DownState) -> Unit)?)
 }
