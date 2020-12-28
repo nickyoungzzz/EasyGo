@@ -9,7 +9,7 @@ class OkIoDownHandler : DownloadHandler {
 
 	override fun saveFile(
 		inputStream: InputStream, downParam: DownParam, contentLength: Long,
-		listener: (state: DownState) -> Unit
+		listener: (state: DownState) -> Unit,
 	) {
 		val file = downParam.desSource
 		val breakPoint = downParam.breakPoint
@@ -24,7 +24,6 @@ class OkIoDownHandler : DownloadHandler {
 		file.appendingSink().buffer().writeAll(object : ForwardingSource(inputStream.source()) {
 
 			private var currentP = file.length()
-
 			override fun read(sink: Buffer, byteCount: Long): Long {
 				listener(downloadState.apply {
 					current = currentP

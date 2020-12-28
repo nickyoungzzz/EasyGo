@@ -5,9 +5,8 @@ import java.io.File
 class DownState constructor(var current: Long, var total: Long, var finished: Boolean, var canceled: Boolean)
 class DownParam {
 
-	var desSource: File = File("")
-
-	var breakPoint: Boolean = false
+	internal var desSource: File = File("")
+	internal var breakPoint: Boolean = false
 
 	fun source(desSource: String) {
 		this.desSource = File(desSource)
