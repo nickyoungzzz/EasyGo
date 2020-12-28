@@ -73,17 +73,14 @@ class HttpEmitter internal constructor(private val param: HttpParam) {
 	}
 
 	fun asRaw(): HttpRawResult {
-		val httpReq = generateHttpReq()
 		return HttpRawResult(generateRealHttpEmitter())
 	}
 
 	inline fun <reified T> asResult(noinline respAction: (String?) -> String? = { it }): HttpRespResult<T> {
-		val httpReq = generateHttpReq()
 		return HttpRespResult(generateRealHttpEmitter(), this.httpConfig.resDataConverter, object : TypeTaken<T>() {}.type, respAction)
 	}
 
 	fun asStream(): HttpStreamResult {
-		val httpReq = generateHttpReq()
 		return HttpStreamResult(generateRealHttpEmitter(), downParam, downloadHandler)
 	}
 
