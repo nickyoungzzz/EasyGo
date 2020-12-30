@@ -1,6 +1,5 @@
 package com.nick.easygo.util.reflect
 
-import com.google.gson.internal.`$Gson$Types`
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
@@ -25,6 +24,6 @@ open class TypeTaken<T> protected constructor() {
 			throw RuntimeException("Missing type parameter.")
 		}
 		val parameterized = superclass as ParameterizedType
-		return `$Gson$Types`.canonicalize(parameterized.actualTypeArguments[0])
+		return canonicalize(parameterized.actualTypeArguments[0])
 	}
 }
