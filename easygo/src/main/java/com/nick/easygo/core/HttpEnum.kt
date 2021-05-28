@@ -1,11 +1,11 @@
 package com.nick.easygo.core
 
 enum class ReqMethod constructor(var method: String, var form: Boolean) {
-	GET("GET", false), POST("POST", false), PUT("PUT", false), DELETE("DELETE", false),
-	PATCH("PATCH", false), HEAD("HEAD", false), GET_FORM("GET", true), POST_FORM("POST", true),
-	PUT_FORM("PUT", true), DELETE_FORM("DELETE", true), PATCH_FORM("PATCH", true)
+    GET("GET", false), POST("POST", false), PUT("PUT", false), DELETE("DELETE", false),
+    PATCH("PATCH", false), HEAD("HEAD", false), GET_FORM("GET", true), POST_FORM("POST", true),
+    PUT_FORM("PUT", true), DELETE_FORM("DELETE", true), PATCH_FORM("PATCH", true)
 }
 
 enum class HttpCacheStrategy {
-	MEMORY_CACHE, FILE_CACHE
+    MEMORY_CACHE, FILE_CACHE
 }

@@ -4,15 +4,15 @@ import java.io.InputStream
 
 interface DownloadHandler {
 
-	fun saveFile(
-		inputStream: InputStream, downParam: DownParam,
-		contentLength: Long, listener: (state: DownState) -> Unit
-	)
+    fun saveFile(
+        inputStream: InputStream, downParam: DownParam,
+        contentLength: Long, listener: (state: DownState) -> Unit
+    )
 
-	fun cancel()
+    fun cancel()
 
-	companion object {
-		@JvmField
-		val OK_IO_DOWNLOAD_HANDLER = OkIoDownHandler()
-	}
+    companion object {
+        @JvmField
+        val OK_IO_DOWNLOAD_HANDLER = OkIoDownHandler()
+    }
 }

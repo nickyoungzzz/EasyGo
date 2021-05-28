@@ -1,4 +1,4 @@
-apply plugin: 'com.novoda.bintray-release'
+apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
 
@@ -7,14 +7,12 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
     implementation 'com.squareup.okio:okio:2.10.0'
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.code.gson:gson:2.8.7'
 }
 
-publish {
-    userOrg = 'niekai'
-    groupId = 'com.nick.code'
-    artifactId = 'easygo'
-    publishVersion = '1.0.1'
-    desc = 'this is a lib created with kotlin/okhttp which can be used to call http request'
-    website = 'https://github.com/nickyoungzzz/EasyGo'
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
+
+group = 'com.nick.code'

@@ -6,15 +6,15 @@ import com.nick.easygo.result.HttpReq
 import com.nick.easygo.result.HttpResp
 
 interface HttpHandler {
-	fun execute(httpReq: HttpReq): HttpResp
-	fun cancel()
-	val requestClient: String
+    fun execute(httpReq: HttpReq): HttpResp
+    fun cancel()
+    val requestClient: String
 
-	companion object {
-		@JvmField
-		val OK_HTTP_HANDLER: HttpHandler = OkHttpHandler()
+    companion object {
+        @JvmField
+        val OK_HTTP_HANDLER: HttpHandler = OkHttpHandler()
 
-		@JvmField
-		val URL_CONNECTION_HANDLER: HttpHandler = UrlConnectionHandler()
-	}
+        @JvmField
+        val URL_CONNECTION_HANDLER: HttpHandler = UrlConnectionHandler()
+    }
 }

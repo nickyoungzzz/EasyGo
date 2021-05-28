@@ -8,36 +8,42 @@ import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.X509TrustManager
 
 class SslHelper {
-	companion object {
-		//获取这个SSLSocketFactory
-		fun getSSLSocketFactory(): SSLSocketFactory {
-			try {
-				val sslContext = SSLContext.getInstance("SSL")
-				sslContext.init(null, arrayOf(getTrustManager()), SecureRandom())
-				return sslContext.socketFactory
-			} catch (e: Exception) {
-				throw RuntimeException(e)
-			}
-		}
+    companion object {
+        //获取这个SSLSocketFactory
+        fun getSSLSocketFactory(): SSLSocketFactory {
+            try {
+                val sslContext = SSLContext.getInstance("SSL")
+                sslContext.init(null, arrayOf(getTrustManager()), SecureRandom())
+                return sslContext.socketFactory
+            } catch (e: Exception) {
+                throw RuntimeException(e)
+            }
+        }
 
-		//获取TrustManager
-		fun getTrustManager(): X509TrustManager {
-			return object : X509TrustManager {
-				override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-				}
+        //获取TrustManager
+        fun getTrustManager(): X509TrustManager {
+            return object : X509TrustManager {
+                override fun checkClientTrusted(
+                    chain: Array<out X509Certificate>?,
+                    authType: String?
+                ) {
+                }
 
-				override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-				}
+                override fun checkServerTrusted(
+                    chain: Array<out X509Certificate>?,
+                    authType: String?
+                ) {
+                }
 
-				override fun getAcceptedIssuers(): Array<X509Certificate> {
-					return arrayOf()
-				}
-			}
-		}
+                override fun getAcceptedIssuers(): Array<X509Certificate> {
+                    return arrayOf()
+                }
+            }
+        }
 
-		//获取HostnameVerifier
-		fun getHostnameVerifier(): HostnameVerifier {
-			return HostnameVerifier { _, _ -> true }
-		}
-	}
+        //获取HostnameVerifier
+        fun getHostnameVerifier(): HostnameVerifier {
+            return HostnameVerifier { _, _ -> true }
+        }
+    }
 }
