@@ -15,10 +15,15 @@ import java.io.IOException
 
 class OkHttpHandler : HttpHandler {
 
-    private lateinit var call: Call
+    private var mOkhttpCall: (() -> Unit)? = null
 
     override fun execute(httpReq: HttpReq): HttpResp {
-        call = EasyGo.okHttpClient.newCall(proceed(httpReq))
+        val call = EasyGo.okHttpClient.newCall(proceed(httpReq))
+        mOkhttpCall = {
+            if (call.isExecuted() && !call.isCanceled()) {
+                call.cancel()
+            }
+        }
         return try {
             val response = call.execute()
             val responseBody = response.body as ResponseBody
@@ -39,9 +44,7 @@ class OkHttpHandler : HttpHandler {
     }
 
     override fun cancel() {
-        if (call.isExecuted() && !call.isCanceled()) {
-            call.cancel()
-        }
+        mOkhttpCall?.invoke()
     }
 
     override val requestClient: String
