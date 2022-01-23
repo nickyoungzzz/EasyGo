@@ -63,11 +63,7 @@ object EasyGo {
             .writeTimeout(httpConfig.writeTimeOut, TimeUnit.MILLISECONDS)
             .hostnameVerifier(httpConfig.hostnameVerifier)
             .sslSocketFactory(httpConfig.sslSocketFactory, httpConfig.x509TrustManager)
-            .dns(object : Dns {
-                override fun lookup(hostname: String): List<InetAddress> {
-                    return httpConfig.dns(hostname).toList()
-                }
-            })
+            .dns { hostname -> httpConfig.dns(hostname).toList() }
             .cookieJar(object : CookieJar {
                 val cookieHandler = httpConfig.httpCookieHandler
                 override fun loadForRequest(url: HttpUrl): List<Cookie> {
